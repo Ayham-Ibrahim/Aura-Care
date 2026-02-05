@@ -51,6 +51,12 @@ class SectionService extends Service
     public function deleteSection(Section $section): void
     {
         try {
+            // delete files for related services first
+            foreach ($section->services as $service) {
+                FileStorage::deleteFile($service->image);
+                $service->delete();
+            }
+
             FileStorage::deleteFile($section->image);
             $section->delete();
         } catch (\Exception $e) {

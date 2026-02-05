@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\SectionController;
+use App\Http\Controllers\ServiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -9,3 +10,4 @@ use Illuminate\Support\Facades\Route;
 // })->middleware('auth:sanctum');
 
 Route::apiResource('sections', SectionController::class);
+Route::apiResource('services', ServiceController::class)->except(['show']);

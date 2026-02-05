@@ -12,4 +12,9 @@ class Section extends Model
         'name',
         'image',
     ];
+
+    public function services()
+    {
+        return $this->hasMany(Service::class);
+    }
 }

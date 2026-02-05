@@ -17,4 +17,9 @@ class Service extends Model
     {
         return $this->belongsTo(Section::class);
     }
-}
+
+    public function subservices()
+    {
+        return $this->hasMany(Subservice::class);
+    }
+} 

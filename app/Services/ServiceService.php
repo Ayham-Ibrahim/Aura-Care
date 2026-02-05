@@ -52,6 +52,12 @@ class ServiceService extends Service
     public function deleteService(Service $service): void
     {
         try {
+            // delete files for related subservices first
+            foreach ($service->subservices as $subservice) {
+                FileStorage::deleteFile($subservice->image);
+                $subservice->delete();
+            }
+
             FileStorage::deleteFile($service->image);
             $service->delete();
         } catch (\Exception $e) {

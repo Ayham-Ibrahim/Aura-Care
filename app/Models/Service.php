@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Center\Center;
 use Illuminate\Database\Eloquent\Model;
 
 class Service extends Model
@@ -21,5 +22,10 @@ class Service extends Model
     public function subservices()
     {
         return $this->hasMany(Subservice::class);
+    }
+
+    public function centers()
+    {
+        return $this->belongsToMany(Center::class, 'center_service')->withTimestamps();
     }
 } 

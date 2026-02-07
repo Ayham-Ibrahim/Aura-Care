@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Models\Center;
+
+use App\Models\Section;
+use App\Models\Service;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Center extends Model
+{
+    // use SoftDeletes;
+
+    protected $fillable = [
+        'section_id',
+        'name',
+        'logo',
+        'location_h',
+        'location_v',
+        'center_number',
+        'password',
+        'reliable',
+        'owner_name',
+        'owner_number',
+        'rating',
+        'sham_image',
+        'sham_code',
+    ];
+
+    protected $hidden = [
+        'password',
+    ];
+
+    public function section()
+    {
+        return $this->belongsTo(Section::class);
+    }
+
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'center_service');
+    }
+
+    public function works()
+    {
+        return $this->hasMany(Work::class);
+    }
+}

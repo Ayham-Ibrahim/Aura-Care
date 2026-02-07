@@ -59,4 +59,18 @@ class SubserviceService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء حذف الخدمة الفرعية');
         }
     }
+
+          public function deleteMultipleSubservices($data): void
+    {
+        try {
+            $subservices = Subservice::whereIn('id', $data['ids'])->get();
+
+            foreach ($subservices as $subservice) {
+                $this->deleteSubservice($subservice);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error deleting multiple subservices', ['subservice_ids' => $data['ids'], 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء حذف الخدمات الفرعية');
+        }
+    }
 }

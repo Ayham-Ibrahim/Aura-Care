@@ -3,9 +3,10 @@
 namespace App\Services;
 
 use App\Models\Service;
+use App\Services\Service as ServicesService;
 use Illuminate\Support\Facades\Log;
 
-class ServiceService extends Service
+class ServiceService extends ServicesService
 {
     public function getAllServices()
     {
@@ -65,4 +66,20 @@ class ServiceService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء حذف الخدمة');
         }
     }
+
+      public function deleteMultipleServices($data): void
+    {
+        try {
+            $services = Service::whereIn('id', $data['ids'])->get();
+
+            foreach ($services as $service) {
+                $this->deleteService($service);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error deleting multiple services', ['service_ids' => $data['ids'], 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء حذف الخدمات');
+        }
+    }
 }
+     
+

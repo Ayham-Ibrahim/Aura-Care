@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Subservice\multipleDeleteSubserviceRequest;
 use App\Http\Requests\Subservice\StoreSubserviceRequest;
 use App\Http\Requests\Subservice\UpdateSubserviceRequest;
 use App\Models\Subservice;
@@ -43,5 +44,11 @@ class SubserviceController extends Controller
     {
         $this->subserviceService->deleteSubservice($subservice);
         return $this->success(null, 'تم حذف الخدمة الفرعية بنجاح', 204);
+    }
+
+            public function multipleDelete(multipleDeleteSubserviceRequest $request)
+    {
+        $this->subserviceService->deleteMultipleSubservices($request->validated());
+        return $this->success(null,'تم حذف الخدمات الفرعية بنجاح',204);
     }
 }

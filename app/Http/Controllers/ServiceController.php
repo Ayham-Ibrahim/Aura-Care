@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Service\multipleDeleteServiceRequest;
 use App\Http\Requests\Service\StoreServiceRequest;
 use App\Http\Requests\Service\UpdateServiceRequest;
 use App\Models\Service;
@@ -43,5 +44,11 @@ class ServiceController extends Controller
     {
         $this->serviceService->deleteService($service);
         return $this->success(null, 'تم حذف الخدمة بنجاح', 204);
+    }
+
+        public function multipleDelete(multipleDeleteServiceRequest $request)
+    {
+        $this->serviceService->deleteMultipleServices($request->validated());
+        return $this->success(null,'تم حذف الأقسام بنجاح',204);
     }
 }

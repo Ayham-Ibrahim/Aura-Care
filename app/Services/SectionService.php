@@ -64,4 +64,18 @@ class SectionService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء حذف القسم');
         }
     }
+
+    public function deleteMultipleSections($data): void
+    {
+        try {
+            $sections = Section::whereIn('id', $data['ids'])->get();
+
+            foreach ($sections as $section) {
+                $this->deleteSection($section);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error deleting multiple sections', ['section_ids' => $data['ids'], 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء حذف الأقسام');
+        }
+    }
 }

@@ -12,8 +12,14 @@ use Illuminate\Support\Facades\Route;
 // })->middleware('auth:sanctum');
 
 Route::apiResource('sections', SectionController::class);
+Route::post('sections/multiple-delete', [SectionController::class, 'multipleDelete']);
+
 Route::apiResource('services', ServiceController::class)->except(['show']);
+Route::post('services/multiple-delete', [ServiceController::class, 'multipleDelete']);
+
 Route::apiResource('subservices', SubserviceController::class)->except(['show']);
+Route::post('subservices/multiple-delete', [SubserviceController::class, 'multipleDelete']);
+
 Route::apiResource('centers', CenterController::class);
 Route::get('centers/{center}/works', [CenterController::class, 'getWorks']);
 // Route::post('centers/{id}/restore', [CenterController::class, 'restore']);

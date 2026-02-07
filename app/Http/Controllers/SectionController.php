@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Section\multipleDeleteSectionRequest;
 use App\Http\Requests\Section\StoreSectionRequest;
 use App\Http\Requests\Section\UpdateSectionRequest;
 use App\Models\Section;
@@ -58,5 +59,11 @@ class SectionController extends Controller
     {
         $this->sectionService->deleteSection($section);
         return $this->success(null,'تم حذف القسم بنجاح',204);
+    }
+
+    public function multipleDelete(multipleDeleteSectionRequest $request)
+    {
+        $this->sectionService->deleteMultipleSections($request->validated());
+        return $this->success(null,'تم حذف الأقسام بنجاح',204);
     }
 }

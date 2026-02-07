@@ -5,6 +5,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SubserviceController;
 use App\Http\Controllers\CenterController;
 use App\Http\Controllers\AdController;
+use App\Http\Controllers\ReservationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,3 +28,6 @@ Route::get('centers/{center}/works', [CenterController::class, 'getWorks']);
 // Route::post('centers/{id}/restore', [CenterController::class, 'restore']);
 
 Route::apiResource('ads', AdController::class);
+
+Route::apiResource('reservations', ReservationController::class);
+Route::patch('reservations/{reservation}/status', [ReservationController::class, 'updateStatus']);

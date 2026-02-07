@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('image');
+            $table->integer('profit_percentage')->default(20);
             $table->timestamps();
         });
     }

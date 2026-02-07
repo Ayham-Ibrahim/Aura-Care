@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Section\multipleDeleteSectionRequest;
 use App\Http\Requests\Section\StoreSectionRequest;
+use App\Http\Requests\Section\updatePorfitPercentageRequest;
 use App\Http\Requests\Section\UpdateSectionRequest;
 use App\Models\Section;
 use App\Services\SectionService;
@@ -65,5 +66,11 @@ class SectionController extends Controller
     {
         $this->sectionService->deleteMultipleSections($request->validated());
         return $this->success(null,'تم حذف الأقسام بنجاح',204);
+    }
+
+    public function updatePorfitPercentage(updatePorfitPercentageRequest $request, Section $section)
+    {
+        $data = $this->sectionService->setPorfitPercentage($section, $request->validated());
+        return $this->success($data, 'تم تحديث نسبة الربح للقسم بنجاح');
     }
 }

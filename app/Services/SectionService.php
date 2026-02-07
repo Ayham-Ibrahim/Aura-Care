@@ -9,7 +9,7 @@ class SectionService extends Service
 {
     public function getAllSections()
     {
-        return Section::select('id', 'name', 'image')->get();
+        return Section::select('id', 'name', 'image', 'profit_percentage')->get();
     }
 
     public function createSection(array $data)
@@ -76,6 +76,22 @@ class SectionService extends Service
         } catch (\Exception $e) {
             Log::error('Error deleting multiple sections', ['section_ids' => $data['ids'], 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء حذف الأقسام');
+        }
+    }
+
+    public function setPorfitPercentage(Section $section, $data)
+    {
+        try {
+            // return $data['profit_percentage'];
+            // $section->update([
+            //     'profit_percentage' => $data['profit_percentage'] ?? $section->profit_percentage,
+            // ]);
+            $section->profit_percentage = $data['profit_percentage'] ?? $section->profit_percentage;
+            $section->save();
+            return $section;
+        } catch (\Exception $e) {
+            Log::error('Error setting profit percentage for section', ['section_id' => $section->id, 'profit_percentage' => $data['profit_percentage'] ?? null, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعيين نسبة الربح للقسم');
         }
     }
 }

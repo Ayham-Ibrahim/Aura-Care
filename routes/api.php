@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::apiResource('sections', SectionController::class);
 Route::post('sections/multiple-delete', [SectionController::class, 'multipleDelete']);
+Route::patch('sections/{section}/profit-percentage', [SectionController::class, 'updatePorfitPercentage']);
 
 Route::apiResource('services', ServiceController::class)->except(['show']);
 Route::post('services/multiple-delete', [ServiceController::class, 'multipleDelete']);

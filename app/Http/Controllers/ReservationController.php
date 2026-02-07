@@ -7,6 +7,7 @@ use App\Http\Requests\Reservation\UpdateReservationRequest;
 use App\Http\Requests\Reservation\UpdateReservationStatusRequest;
 use App\Models\Reservation;
 use App\Services\ReservationService;
+use Symfony\Component\HttpFoundation\Request;
 
 class ReservationController extends Controller
 {
@@ -17,10 +18,10 @@ class ReservationController extends Controller
         $this->reservationService = $reservationService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $reservations = $this->reservationService->getAllReservations();
-        return $this->success($reservations, 'تم الحصول على جميع الحجوزات بنجاح');
+        $reservations = $this->reservationService->getAllReservations($request->perPage);
+        return $this->paginate($reservations, 'تم الحصول على جميع الحجوزات بنجاح');
     }
 
     // public function store(StoreReservationRequest $request)

@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Log;
 
 class ReservationService extends Service
 {
-    public function getAllReservations()
+    public function getAllReservations($perPage = 10)
     {
-        return Reservation::with('center:id,name','user:id,name')->get();
+        return Reservation::with('center:id,name','user:id,name')->paginate($perPage);
     }
 
     // public function createReservation(array $data)

@@ -19,7 +19,7 @@ class UpdateCenterRequest extends FormRequest
             'logo' => 'sometimes|image|mimes:png,jpg,jpeg|max:5000',
             'location_h' => 'sometimes|numeric',
             'location_v' => 'sometimes|numeric',
-            'center_number' => 'sometimes|string|max:255',
+            'phone' => 'sometimes|string|max:255',
             'password' => 'sometimes|string|max:255',
             'owner_name' => 'sometimes|string|max:255',
             'owner_number' => 'sometimes|string|max:255',

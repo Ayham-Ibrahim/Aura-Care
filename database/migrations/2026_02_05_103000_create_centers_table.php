@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('logo')->nullable();
             $table->decimal('location_h', 10, 7);
             $table->decimal('location_v', 10, 7);
-            $table->string('center_number');
+            $table->string('phone');
+            $table->timestamp('phone_verified_at')->nullable();
             $table->string('password');
             $table->boolean('reliable')->default(false);
             $table->string('owner_name');

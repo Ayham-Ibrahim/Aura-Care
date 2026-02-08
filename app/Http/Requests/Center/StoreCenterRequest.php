@@ -19,7 +19,7 @@ class StoreCenterRequest extends FormRequest
             'logo' => 'sometimes|image|mimes:png,jpg,jpeg|max:5000',
             'location_h' => 'required|numeric',
             'location_v' => 'required|numeric',
-            'center_number' => 'required|string|max:255',
+            'phone' => 'required|string|max:255',
             'password' => 'required|string|max:255',
             'owner_name' => 'required|string|max:255',
             'owner_number' => 'required|string|max:255',

@@ -6,18 +6,19 @@ use App\Models\Section;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Sanctum\HasApiTokens;
 
 class Center extends Model
 {
     // use SoftDeletes;
-
+    use HasApiTokens;
     protected $fillable = [
         'section_id',
         'name',
         'logo',
         'location_h',
         'location_v',
-        'center_number',
+        'phone',
         'password',
         'reliable',
         'owner_name',
@@ -44,5 +45,10 @@ class Center extends Model
     public function works()
     {
         return $this->hasMany(Work::class);
+    }
+
+    public function isPhoneVerified(): bool
+    {
+        return !is_null($this->phone_verified_at);
     }
 }

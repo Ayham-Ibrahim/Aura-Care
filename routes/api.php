@@ -4,6 +4,7 @@ use App\Http\Controllers\SectionController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SubserviceController;
 use App\Http\Controllers\AdController;
+use App\Http\Controllers\BroadcastNotificationController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserManagementControllers\CenterController;
 use App\Http\Controllers\UserManagementControllers\UserManagementController;
@@ -43,6 +44,19 @@ Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementCont
 
 
 //################################################################
+
+/*
+    |--------------------------------------------------------------------------
+    | Admin Broadcast Notifications Routes - الإشعارات الجماعية
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('admin/notifications')->group(function () {
+        Route::get('/target-types', [BroadcastNotificationController::class, 'getTargetTypes']); // أنواع المستهدفين
+        Route::get('/', [BroadcastNotificationController::class, 'index']);                       // قائمة الإشعارات
+        Route::post('/', [BroadcastNotificationController::class, 'store']);                      // إنشاء إشعار جديد
+        Route::get('/{id}', [BroadcastNotificationController::class, 'show']);                    // تفاصيل إشعار
+        Route::delete('/{id}', [BroadcastNotificationController::class, 'destroy']);              // حذف إشعار
+    });
 
 Route::apiResource('sections', SectionController::class);
 Route::post('sections/multiple-delete', [SectionController::class, 'multipleDelete']);

@@ -45,12 +45,13 @@ Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementCont
 
 //################################################################
 
-/*
+Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
+    /*
     |--------------------------------------------------------------------------
     | Admin Broadcast Notifications Routes - الإشعارات الجماعية
     |--------------------------------------------------------------------------
     */
-    Route::prefix('admin/notifications')->group(function () {
+    Route::prefix('notifications')->group(function () {
         Route::get('/target-types', [BroadcastNotificationController::class, 'getTargetTypes']); // أنواع المستهدفين
         Route::get('/', [BroadcastNotificationController::class, 'index']);                       // قائمة الإشعارات
         Route::post('/', [BroadcastNotificationController::class, 'store']);                      // إنشاء إشعار جديد
@@ -58,21 +59,31 @@ Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementCont
         Route::delete('/{id}', [BroadcastNotificationController::class, 'destroy']);              // حذف إشعار
     });
 
-Route::apiResource('sections', SectionController::class);
-Route::post('sections/multiple-delete', [SectionController::class, 'multipleDelete']);
-Route::patch('sections/{section}/profit-percentage', [SectionController::class, 'updatePorfitPercentage']);
+    // ---------------------------
+    // Admin Users (index, show, delete)
+    // ---------------------------
+    Route::prefix('users')->group(function () {
+        Route::get('/', [UserManagementController::class, 'listUsers']);      // index
+        Route::get('/{id}', [UserManagementController::class, 'userDetails']); // show
+        Route::delete('/{id}', [UserManagementController::class, 'deleteUser']); // delete
+    });
 
-Route::apiResource('services', ServiceController::class)->except(['show']);
-Route::post('services/multiple-delete', [ServiceController::class, 'multipleDelete']);
+    Route::apiResource('sections', SectionController::class);
+    Route::post('sections/multiple-delete', [SectionController::class, 'multipleDelete']);
+    Route::patch('sections/{section}/profit-percentage', [SectionController::class, 'updatePorfitPercentage']);
 
-Route::apiResource('subservices', SubserviceController::class)->except(['show']);
-Route::post('subservices/multiple-delete', [SubserviceController::class, 'multipleDelete']);
+    Route::apiResource('services', ServiceController::class)->except(['show']);
+    Route::post('services/multiple-delete', [ServiceController::class, 'multipleDelete']);
 
-Route::apiResource('centers', CenterController::class);
-Route::get('centers/{center}/works', [CenterController::class, 'getWorks']);
-// Route::post('centers/{id}/restore', [CenterController::class, 'restore']);
+    Route::apiResource('subservices', SubserviceController::class)->except(['show']);
+    Route::post('subservices/multiple-delete', [SubserviceController::class, 'multipleDelete']);
 
-Route::apiResource('ads', AdController::class);
+    Route::apiResource('centers', CenterController::class);
+    Route::get('centers/{center}/works', [CenterController::class, 'getWorks']);
+    // Route::post('centers/{id}/restore', [CenterController::class, 'restore']);
 
-Route::apiResource('reservations', ReservationController::class);
-Route::patch('reservations/{reservation}/status', [ReservationController::class, 'updateStatus']);
+    Route::apiResource('ads', AdController::class);
+
+    Route::apiResource('reservations', ReservationController::class);
+    Route::patch('reservations/{reservation}/status', [ReservationController::class, 'updateStatus']);
+});

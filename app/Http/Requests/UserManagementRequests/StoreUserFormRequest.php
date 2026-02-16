@@ -26,14 +26,11 @@ class StoreUserFormRequest extends FormRequest
             'name'     => 'required|string|max:255',
             'phone'    => 'required|string|max:255|unique:users,phone',
             'password' => 'required|string|min:6|confirmed',
-            // 'logo'   => 'nullable|image
-            //                         |mimes:png,jpg,jpeg
-            //                         |mimetypes:image/jpeg,image/png,image/jpg
-            //                         |max:5000',
-            'gender' => 'required|string|max:255|in:male,female',,
+            'gender' => 'required|string|max:255|in:male,female',
+            'age' => 'required|integer|min:0',
             'v_location' => 'required|string|max:255',
             'h_location' => 'required|string|max:255',
-            'is_admin' => 'nullable|boolean|in:0,1',
+            // 'is_admin' => 'nullable|boolean|in:0,1',
         ];
     }
      /**
@@ -48,12 +45,11 @@ class StoreUserFormRequest extends FormRequest
             'phone' => 'رقم الواتساب',
             'password' => 'كلمة المرور',
             'password_confirmation' => 'تأكيد كلمة المرور',
-            // 'logo' => 'الصورة',
             'v_location' => 'الاحداثيات العمودية',
             'h_location' => 'الاحداثيات الأفقية',
-            'is_admin' => 'الدور',
+            // 'is_admin' => 'الدور',
             'gender' => 'الجنس',
-            'city' => 'المدينة',
+            'age' => 'العمر',
         ];
     }
      /**
@@ -73,10 +69,6 @@ class StoreUserFormRequest extends FormRequest
             'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
             'in' => 'حقل :attribute يجب أن يكون أحد قيمتين ذكر أو أنثى',
 
-            // 'logo.image' => 'حقل :attribute يجب أن يكون صورة.',
-            // 'logo.mimes' => 'الصورة يجب أن تكون من نوع: :values.',
-            // 'logo.max' => 'حجم :attribute يجب ألا يتجاوز :max كيلوبايت (ما يعادل 5 ميجابايت).',
-            // 'logo.mimetypes' => 'نوع ملف الصورة غير مسموح به. الأنواع المسموحة: :values.',
         ];
     }
 }

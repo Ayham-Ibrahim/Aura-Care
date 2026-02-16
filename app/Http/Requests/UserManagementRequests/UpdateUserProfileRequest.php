@@ -26,10 +26,6 @@ class UpdateUserProfileRequest extends FormRequest
     {
         return [
             'name' => 'nullable|string|max:255',
-            'avatar'   => 'nullable|image
-                                    |mimes:png,jpg,jpeg
-                                    |mimetypes:image/jpeg,image/png,image/jpg
-                                    |max:5000',
             'v_location'    => 'nullable|string|max:255',
             'h_location'    => 'nullable|string|max:255',
             'phone' => [
@@ -39,8 +35,8 @@ class UpdateUserProfileRequest extends FormRequest
                 Rule::unique('users', 'phone')->ignore(Auth::id())
             ],
             'gender' => 'nullable|string|max:255|in:male,female',
-            'city'          => 'nullable|string|max:255',
             'password'      => 'nullable|string|min:6|max:255|confirmed',
+            'age' => 'nullable|integer|min:0',
         ];
     }
     /**
@@ -57,9 +53,8 @@ class UpdateUserProfileRequest extends FormRequest
             'password_confirmation' => 'تأكيد كلمة المرور',
             'v_location' => 'الاحداثيات العمودية',
             'h_location' => 'الاحداثيات الأفقية',
-            'city' => 'المدينة',
-            'avatar' => 'الصورة الشخصية',
             'gender' => 'الجنس',
+            'age' => 'العمر',
         ];
     }
     /**
@@ -78,10 +73,7 @@ class UpdateUserProfileRequest extends FormRequest
             'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
             'in' => 'حقل :attribute يجب أن يكون أحد قيمتين ذكر أو أنثى',
 
-            'avatar.image' => 'حقل :attribute يجب أن يكون صورة.',
-            'avatar.mimes' => 'الصورة يجب أن تكون من نوع: :values.',
-            'avatar.max' => 'حجم :attribute يجب ألا يتجاوز :max كيلوبايت (ما يعادل 5 ميجابايت).',
-            'avatar.mimetypes' => 'نوع ملف الصورة غير مسموح به. الأنواع المسموحة: :values.',
+
         ];
     }
     protected function failedAuthorization()

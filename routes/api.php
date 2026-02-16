@@ -87,3 +87,12 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::apiResource('reservations', ReservationController::class);
     Route::patch('reservations/{reservation}/status', [ReservationController::class, 'updateStatus']);
 });
+
+// ---------------------------
+//  User Profile 
+// ---------------------------
+
+Route::prefix('user')->middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [UserManagementController::class, 'profile']);
+    Route::put('/profile', [UserManagementController::class, 'updateProfile']);
+});

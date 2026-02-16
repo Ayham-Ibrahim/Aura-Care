@@ -8,10 +8,12 @@ use Carbon\Carbon;
 class OTPService
 {
     protected $whatsAppService;
+    protected $telegramService;
 
-    public function __construct(WhatsAppService $whatsAppService)
+    public function __construct(WhatsAppService $whatsAppService, TelegramService $telegramService)
     {
         $this->whatsAppService = $whatsAppService;
+        $this->telegramService = $telegramService;
     }
 
     /**
@@ -38,7 +40,7 @@ class OTPService
             'attempts'   => 0,
         ]);
 
-        $sent = $this->whatsAppService->sendOTP($phone, $otpCode, $type);
+        $sent = $this->telegramService->sendOTP($phone, $otpCode, $type);
 
         if (! $sent) {
             throw new \Exception('فشل في إرسال كود التحقق');

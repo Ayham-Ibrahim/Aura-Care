@@ -47,28 +47,20 @@ class UserManagementService extends Service
             //         ];
             //     }
             // }
-
-            // إنشاء حساب جديد غير مؤكد
-            $avatarPath = isset($data['avatar'])
-                ? FileStorage::storeFile($data['avatar'], 'avatars', 'img')
-                : null;
-
             $user = User::create([
                 'name'              => $data['name'],
                 'phone'             => $data['phone'],
-                // 'gender'            => $data['gender'],
-                // 'city'              => $data['city'],
+                'gender'            => $data['gender'],
+                'age'               => $data['age'],
                 'password'          => Hash::make($data['password']),
-                'logo'            => $avatarPath,
                 'v_location'        => $data['v_location'],
                 'h_location'        => $data['h_location'],
-                'is_admin'          => 0,
                 'phone_verified_at' => null, // غير مؤكد
             ]);
 
             // إرسال OTP للتأكيد
             try {
-                // $this->otpService->generateOTP($data['phone'], 'register');
+                $this->otpService->generateOTP($data['phone'], 'register');
 
                 DB::commit();
 
@@ -480,9 +472,7 @@ class UserManagementService extends Service
     {
         return match ($type) {
             'user' => User::class,
-            'provider' => Provider::class,
-            'store_manager' => Store::class,
-            'driver' => Driver::class,
+            'center' => Center::class,
             default => User::class,
         };
     }
@@ -524,23 +514,20 @@ class UserManagementService extends Service
             if (!empty($data['password'])) {
                 $data['password'] = Hash::make($data['password']);
             }
+            // return $data['gender'];
 
-            $avatar = FileStorage::fileExists(
-                $data['avatar'] ?? null,
-                $user->avatar,
-                'avatars',
-                'img'
-            );
+            $user->update([
+                'name' => $data['name'] ?? $user->name,
+                'phone' => $data['phone'] ?? $user->phone,
+                'password' => $data['password'] ?? $user->password,
+                'v_location' => $data['v_location'] ?? $user->v_location,
+                'h_location' => $data['h_location'] ?? $user->h_location,
+                'gender' => $data['gender'] ,
+                'age' => $data['age'] ?? $user->age,
 
-            if ($avatar !== null) {
-                $data['avatar'] = $avatar;
-            } else {
-                unset($data['avatar']);
-            }
+            ]);
 
-            $user->update($data);
-
-            return $user->fresh();
+            return $user;
         } catch (\Throwable $e) {
             $this->throwExceptionJson(
                 'حدث خطأ أثناء تحديث بياناتك',

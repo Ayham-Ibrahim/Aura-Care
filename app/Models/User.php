@@ -23,8 +23,9 @@ class User extends Authenticatable
         'phone',
         'phone_verified_at',
         'is_admin',
+        'gender',
+        'age',
         'password',
-        'logo',
         'v_location',
         'h_location'
     ];

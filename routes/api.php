@@ -43,11 +43,12 @@ Route::middleware('auth:sanctum')->post('/logout', [UserManagementController::cl
 Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementController::class, 'deleteAccount']);
 
 
-Route::get('sections/services', [SectionController::class, 'withServices']);
 
 //################################################################
 
 Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
+    Route::get('sections/services', [SectionController::class, 'withServices']);
+
     /*
     |--------------------------------------------------------------------------
     | Admin Broadcast Notifications Routes - الإشعارات الجماعية

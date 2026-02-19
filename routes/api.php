@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->post('/logout', [UserManagementController::cl
 Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementController::class, 'deleteAccount']);
 
 
+
 //################################################################
 
 Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
@@ -71,12 +72,17 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::apiResource('sections', SectionController::class);
     Route::post('sections/multiple-delete', [SectionController::class, 'multipleDelete']);
     Route::patch('sections/{section}/profit-percentage', [SectionController::class, 'updatePorfitPercentage']);
+    // Sections + main services for authenticated users (mobile/web)
+
+    Route::get('sections/services', [SectionController::class, 'withServices']);
 
     Route::apiResource('services', ServiceController::class)->except(['show']);
     Route::post('services/multiple-delete', [ServiceController::class, 'multipleDelete']);
 
     Route::apiResource('subservices', SubserviceController::class)->except(['show']);
     Route::post('subservices/multiple-delete', [SubserviceController::class, 'multipleDelete']);
+    // Subservices grouped by main service
+    Route::get('subservices/by-service', [SubserviceController::class, 'groupedByService']);
 
     Route::apiResource('centers', CenterController::class);
     Route::get('centers/{center}/works', [CenterController::class, 'getWorks']);

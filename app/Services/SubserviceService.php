@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Subservice;
+use App\Models\Service;
 use Illuminate\Support\Facades\Log;
 
 class SubserviceService extends Service
@@ -10,6 +11,21 @@ class SubserviceService extends Service
     public function getAllSubservices()
     {
         return Subservice::select('id', 'name', 'image', 'service_id')->with('service:id,name')->get();
+    }
+
+    /**
+     * Return subservices grouped by their parent main service
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getSubservicesGroupedByService()
+    {
+        return Service::select('id', 'name', 'image')
+            ->with(['subservices' => function ($q) {
+                $q->select('id', 'name', 'image', 'service_id')->orderBy('name');
+            }])
+            ->orderBy('name')
+            ->get();
     }
 
     public function createSubservice(array $data)

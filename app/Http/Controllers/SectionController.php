@@ -20,11 +20,29 @@ class SectionController extends Controller
     }
     /**
      * Display a listing of the resource.
+     * Supports both paginated and non-paginated responses.
+     * Use `?per_page=10` to request a paginated response.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $sections = $this->sectionService->getAllSections();
-        return $this->success($sections,'تم الحصول على جميع الاقسام بنجاح');
+        $perPage = $request->integer('per_page') ?: null;
+
+        $sections = $this->sectionService->getAllSections($perPage);
+
+        if ($perPage) {
+            return $this->paginate($sections, 'تم الحصول على الأقسام (مجزأة) بنجاح');
+        }
+
+        return $this->success($sections, 'تم الحصول على جميع الاقسام بنجاح');
+    }
+
+    /**
+     * Return sections along with their main services (authenticated users)
+     */
+    public function withServices()
+    {
+        $sections = $this->sectionService->getSectionsWithServices();
+        return $this->success($sections, 'تم جلب الأقسام والخدمات بنجاح');
     }
 
     /**

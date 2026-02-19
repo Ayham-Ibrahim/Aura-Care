@@ -7,9 +7,34 @@ use Illuminate\Support\Facades\Log;
 
 class SectionService extends Service
 {
-    public function getAllSections()
+    /**
+     * Get all sections — paginated when $perPage provided, otherwise full collection.
+     *
+     * 
+     */
+    public function getAllSections(int|null $perPage = null)
     {
-        return Section::select('id', 'name', 'image', 'profit_percentage')->get();
+        $query = Section::select('id', 'name', 'image', 'profit_percentage')->orderBy('name');
+
+        if ($perPage) {
+            return $query->paginate($perPage);
+        }
+
+        return $query->get();
+    }
+
+    /**
+     * Return sections with their main services (used by mobile/web clients)
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getSectionsWithServices()
+    {
+        return Section::select('id', 'name', 'image')
+            ->with(['services' => function ($q) {
+                $q->select('id', 'name', 'image', 'section_id')->orderBy('name');
+            }])
+            ->get();
     }
 
     public function createSection(array $data)

@@ -7,9 +7,20 @@ use Illuminate\Support\Facades\Log;
 
 class SectionService extends Service
 {
-    public function getAllSections()
+    /**
+     * Get all sections — paginated when $perPage provided, otherwise full collection.
+     *
+     * 
+     */
+    public function getAllSections(int|null $perPage = null)
     {
-        return Section::select('id', 'name', 'image', 'profit_percentage')->get();
+        $query = Section::select('id', 'name', 'image', 'profit_percentage')->orderBy('name');
+
+        if ($perPage) {
+            return $query->paginate($perPage);
+        }
+
+        return $query->get();
     }
 
     /**

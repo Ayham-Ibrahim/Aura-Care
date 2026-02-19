@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->post('/logout', [UserManagementController::cl
 Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementController::class, 'deleteAccount']);
 
 
+Route::get('sections/services', [SectionController::class, 'withServices']);
 
 //################################################################
 
@@ -74,7 +75,6 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::patch('sections/{section}/profit-percentage', [SectionController::class, 'updatePorfitPercentage']);
     // Sections + main services for authenticated users (mobile/web)
 
-    Route::get('sections/services', [SectionController::class, 'withServices']);
 
     Route::apiResource('services', ServiceController::class)->except(['show']);
     Route::post('services/multiple-delete', [ServiceController::class, 'multipleDelete']);

@@ -28,6 +28,15 @@ class SectionController extends Controller
     }
 
     /**
+     * Return sections along with their main services (authenticated users)
+     */
+    public function withServices()
+    {
+        $sections = $this->sectionService->getSectionsWithServices();
+        return $this->success($sections, 'تم جلب الأقسام والخدمات بنجاح');
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreSectionRequest $request)

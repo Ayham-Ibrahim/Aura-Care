@@ -480,9 +480,7 @@ class UserManagementService extends Service
     {
         return match ($type) {
             'user' => User::class,
-            'provider' => Provider::class,
-            'store_manager' => Store::class,
-            'driver' => Driver::class,
+            'center' => Center::class,
             default => User::class,
         };
     }

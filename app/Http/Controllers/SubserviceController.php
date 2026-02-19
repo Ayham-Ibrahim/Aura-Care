@@ -7,6 +7,7 @@ use App\Http\Requests\Subservice\StoreSubserviceRequest;
 use App\Http\Requests\Subservice\UpdateSubserviceRequest;
 use App\Models\Subservice;
 use App\Services\SubserviceService;
+use Illuminate\Http\Request;
 
 class SubserviceController extends Controller
 {
@@ -21,6 +22,15 @@ class SubserviceController extends Controller
     {
         $subservices = $this->subserviceService->getAllSubservices();
         return $this->success($subservices, 'تم الحصول على جميع الخدمات الفرعية بنجاح');
+    }
+
+    /**
+     * Subservices grouped by their main service
+     */
+    public function groupedByService()
+    {
+        $grouped = $this->subserviceService->getSubservicesGroupedByService();
+        return $this->success($grouped, 'تم جلب الخدمات الفرعية مجمعة حسب الخدمة الرئيسية');
     }
 
     public function store(StoreSubserviceRequest $request)

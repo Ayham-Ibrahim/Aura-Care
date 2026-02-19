@@ -12,6 +12,20 @@ class SectionService extends Service
         return Section::select('id', 'name', 'image', 'profit_percentage')->get();
     }
 
+    /**
+     * Return sections with their main services (used by mobile/web clients)
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getSectionsWithServices()
+    {
+        return Section::select('id', 'name', 'image')
+            ->with(['services' => function ($q) {
+                $q->select('id', 'name', 'image', 'section_id')->orderBy('name');
+            }])
+            ->get();
+    }
+
     public function createSection(array $data)
     {
         try {

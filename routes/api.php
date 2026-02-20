@@ -46,8 +46,9 @@ Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementCont
 
 //################################################################
 
-Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
+Route::prefix('admin')->group(function () {
     Route::get('sections/services', [SectionController::class, 'withServices']);
+    Route::get('services/by-section/{section}', [ServiceController::class, 'getServicesBySection']);
 
     /*
     |--------------------------------------------------------------------------
@@ -102,4 +103,14 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
 Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [UserManagementController::class, 'profile']);
     Route::put('/profile', [UserManagementController::class, 'updateProfile']);
+});
+
+
+
+
+Route::prefix('center')->middleware('auth:sanctum')->group(function () {
+    Route::get('services', [CenterController::class, 'getServices']);
+    Route::get('subservices/{service_id}', [CenterController::class, 'showSubservicesByService']);
+    Route::patch('subservices', [CenterController::class, 'updateSubservice']);
+
 });

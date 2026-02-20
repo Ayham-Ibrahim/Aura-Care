@@ -2,8 +2,10 @@
 
 namespace App\Models\Center;
 
+use App\Models\ManageSubservice;
 use App\Models\Section;
 use App\Models\Service;
+use App\Models\Subservice;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
@@ -50,5 +52,10 @@ class Center extends Model
     public function isPhoneVerified(): bool
     {
         return !is_null($this->phone_verified_at);
+    }
+
+    public function manageSubservices()
+    {
+        return $this->hasMany(ManageSubservice::class);
     }
 }

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\UserManagementControllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Center\StoreCenterRequest;
+use App\Http\Requests\Center\StoreWorkRequest;
 use App\Http\Requests\Center\UpdateCenterRequest;
+use App\Http\Requests\Center\UpdateCenterSubsevrice;
 use App\Models\Center\Center;
 use App\Services\CenterService;
 use Illuminate\Http\Request;
@@ -58,4 +60,22 @@ class CenterController extends Controller
     //     $center = $this->centerService->restoreCenter($id);
     //     return $this->success($center, 'تم استعادة المركز بنجاح');
     // }
+
+    public function getServices()
+    {
+        $services = $this->centerService->getCenterServices();
+        return $this->success($services, 'تم الحصول على خدمات المركز بنجاح');
+    }
+
+    public function showSubservicesByService($sevice_id)
+    {
+        $subservices = $this->centerService->getCenterSubservicesByService($sevice_id);
+        return $this->success($subservices, 'تم الحصول على خدمات المركز بنجاح');
+    }
+
+    public function updateSubservice(UpdateCenterSubsevrice $request)
+    {
+        $subservices = $this->centerService->editSubservices($request->validated());
+        return $this->success($subservices, 'تم الحصول على خدمات المركز بنجاح');
+    }
 }

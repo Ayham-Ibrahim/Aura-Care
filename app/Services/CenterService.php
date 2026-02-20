@@ -3,6 +3,14 @@
 namespace App\Services;
 
 use App\Models\Center\Center;
+use App\Models\Center\Work;
+use App\Models\Center\WorkFile;
+// use App\Models\ManageSubservice;
+use App\Models\Subservice;
+use App\Models\ManageSubservice;
+use App\Models\Service as ServiceModel;
+use App\Services\FileStorage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -49,6 +57,16 @@ class CenterService extends Service
             // attach services if provided (array of ids)
             if (!empty($data['services']) && is_array($data['services'])) {
                 $center->services()->sync($data['services']);
+
+                $subServices = Subservice::whereIn('service_id', $data['services'])->pluck('id')->toArray();
+                ManageSubservice::insert(
+                    array_map(function ($subServiceId) use ($center) {
+                        return [
+                            'center_id' => $center->id,
+                            'subservice_id' => $subServiceId,
+                        ];
+                    }, $subServices)
+                );
             }
             DB::commit();
 
@@ -124,4 +142,51 @@ class CenterService extends Service
     //         $this->throwExceptionJson('حدث خطأ ما أثناء استعادة المركز');
     //     }
     // }
+
+    public function getCenterServices()
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $services = ServiceModel::whereHas('centers', function ($query) use ($center) {
+                $query->where('center_id', $center->id);
+            })->select('id', 'name', 'image')
+                ->get();
+            return $services;
+        } catch (\Exception $e) {
+            Log::error('Error fetching services for center', ['center_id' => $center->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطاء ما اثناء جلب الخدمات الخاصة بالمركز');
+        }
+    }
+
+    public function getCenterSubservicesByService($service_id)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $subservices = Subservice::where('service_id', $service_id)->get(); 
+            return $subservices;
+        } catch (\Exception $e) {
+            Log::error('Error fetching subservices for center', ['center_id' => $center->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطاء ما اثناء جلب الخدمات الخاصة بالمركز');
+        }
+    }
+
+    public function editSubservices($data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $manage_subservice = $center->manageSubservices()->where('subservice_id', $data['subservice_id'])->firstOrFail();
+            $manage_subservice->update([
+                'price' => $data['price'] ?? $manage_subservice->price,
+                'is_active' => $data['is_active'] ?? $manage_subservice->is_active,
+                'activating_points' => $data['activating_points'] ?? $manage_subservice->activating_points,
+                'points' => $data['points'] ?? $manage_subservice->points,
+                'from' => $data['from'] ?? $manage_subservice->from,
+                'to' => $data['to'] ?? $manage_subservice->from,
+            ]);
+            return $manage_subservice;
+        } catch (\Exception $e) {
+            Log::error('Error editing subservices for center', ['center_id' => $center->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطاء ما اثناء تعديل الخدمات الخاصة بالمركز');
+        }
+    }
 }

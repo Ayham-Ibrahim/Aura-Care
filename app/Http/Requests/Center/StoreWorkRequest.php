@@ -14,12 +14,12 @@ class StoreWorkRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'service_id' => 'required|exists:services,id',
             'description' => 'required|string|max:255',
-            'files' => 'required|array|min:1',
-            'files.*' => 'required|file
-                |mimes:jpeg,png,jpg,mp4,webm,ogg,mov,wmv
-                |mimetypes:image/jpeg,image/png,image/jpg,video/mp4,video/webm,video/ogg,video/quicktime,video/x-ms-wmv
+            'video_path' => 'nullable|string|max:255',
+            'images' => 'required|array|min:1',
+            'images.*' => 'required|file
+                |mimes:jpeg,png,jpg
+                |mimetypes:image/jpeg,image/png,image/jpg
                 |max:51200',
         ];
     }

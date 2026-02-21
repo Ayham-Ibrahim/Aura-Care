@@ -5,6 +5,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SubserviceController;
 use App\Http\Controllers\AdController;
 use App\Http\Controllers\BroadcastNotificationController;
+use App\Http\Controllers\Center\WorkController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserManagementControllers\CenterController;
 use App\Http\Controllers\UserManagementControllers\UserManagementController;
@@ -106,11 +107,17 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
 });
 
 
-
+// ---------------------------
+//  Center App 
+// ---------------------------
 
 Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     Route::get('services', [CenterController::class, 'getServices']);
     Route::get('subservices/{service_id}', [CenterController::class, 'showSubservicesByService']);
     Route::patch('subservices', [CenterController::class, 'updateSubservice']);
 
+    Route::get('works/service/{service}', [WorkController::class, 'getWorkByService']);
+    Route::post('works/service/{service}', [WorkController::class, 'storeWork']);
+    Route::get('works/{work}', [WorkController::class, 'getWorkById']);
+    Route::delete('works/{work}', [WorkController::class, 'deleteWork']);
 });

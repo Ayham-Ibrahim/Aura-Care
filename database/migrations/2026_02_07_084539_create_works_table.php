@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('center_id')->constrained('centers')->cascadeOnDelete();
             $table->foreignId('service_id')->constrained('services')->cascadeOnDelete();
             $table->string('description');
+            $table->string('video_path')->nullable();
             $table->timestamps();
         });
     }

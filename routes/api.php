@@ -79,6 +79,7 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('services', ServiceController::class)->except(['show']);
     Route::post('services/multiple-delete', [ServiceController::class, 'multipleDelete']);
+    Route::get('services/by-section/{section}', [ServiceController::class, 'getServicesBySection']);
 
     Route::apiResource('subservices', SubserviceController::class)->except(['show']);
     Route::post('subservices/multiple-delete', [SubserviceController::class, 'multipleDelete']);

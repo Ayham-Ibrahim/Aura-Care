@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Section;
+use App\Models\Service;
 use Illuminate\Support\Facades\Log;
 
 class SectionService extends Service
@@ -119,4 +120,5 @@ class SectionService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء تعيين نسبة الربح للقسم');
         }
     }
+
 }

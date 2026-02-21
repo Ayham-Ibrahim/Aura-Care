@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Service\multipleDeleteServiceRequest;
 use App\Http\Requests\Service\StoreServiceRequest;
 use App\Http\Requests\Service\UpdateServiceRequest;
+use App\Models\Section;
 use App\Models\Service;
 use App\Services\ServiceService;
 
@@ -50,5 +51,16 @@ class ServiceController extends Controller
     {
         $this->serviceService->deleteMultipleServices($request->validated());
         return $this->success(null,'تم حذف الأقسام بنجاح',204);
+    }
+
+    /**
+     * get Services By Section
+     * @param Section $section
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getServicesBySection(Section $section)
+    {
+        $services = $this->serviceService->getServicesBySection($section);
+        return $this->success($services, 'تم الحصول على الخدمات بنجاح');
     }
 }

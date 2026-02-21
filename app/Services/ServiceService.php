@@ -80,6 +80,23 @@ class ServiceService extends ServicesService
             $this->throwExceptionJson('حدث خطأ ما أثناء حذف الخدمات');
         }
     }
+
+    
+    /**
+     * Summary of getServicesBySection
+     * @param mixed $section
+     */
+    public function getServicesBySection($section)
+    {
+        try {
+            // return $section_id;
+            $services = Service::where('section_id', $section->id)->get();
+            return $services;
+        } catch (\Exception $e) {
+            Log::error('Error fetching services by section', ['section_id' => $section->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب الخدمات الخاصة بالقسم');
+        }
+    }
 }
      
 

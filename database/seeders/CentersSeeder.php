@@ -68,7 +68,8 @@ class CentersSeeder extends Seeder
         ];
 
         foreach ($centersData as $data) {
-            Center::create($data);
+            $center = Center::create($data);
+            $center->services()->attach($center->section->services->random(2)->pluck('id')->toArray());
         }
 
         $this->command->info('تم إنشاء ' . Center::count() . ' مراكز.');

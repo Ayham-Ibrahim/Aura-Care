@@ -28,6 +28,7 @@ class Center extends Model
         'rating',
         'sham_image',
         'sham_code',
+        'phone_verified_at',
     ];
 
     protected $hidden = [

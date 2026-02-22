@@ -28,8 +28,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SectionSeeder::class,
             UsersSeeder::class,
-            CentersSeeder::class,
             ServicesSeeder::class,
+            CentersSeeder::class,
             SubservicesSeeder::class,
             ManageSubserviceSeeder::class,
             CenterWorkSeeder::class,

@@ -209,7 +209,7 @@ class UserManagementService extends Service
             ];
         }
 
-        if ($credentials['type'] === 'user' && !$account->isPhoneVerified()) {
+        if (($credentials['type'] === 'user' || $credentials['type'] === 'center') && !$account->isPhoneVerified()) {
             try {
                 $this->otpService->generateOTP($credentials['phone'], 'register');
 
@@ -255,7 +255,13 @@ class UserManagementService extends Service
         DB::beginTransaction();
 
         try {
-            $user = User::where('phone', $data['phone'])->first();
+            // $user = User::where('phone', $data['phone'])->first();
+            $model = match ($data['type']) {
+            'user'          => User::class,
+            'center'      => Center::class,
+        };
+
+        $user = $model::where('phone', $data['phone'])->first();
 
             if (!$user) {
                 return [
@@ -298,7 +304,7 @@ class UserManagementService extends Service
             return [
                 'success' => true,
                 'data' => [
-                    'type' => 'user',
+                    'type' => $data['type'],
                     'user' => $user->fresh(),
                     'access_token'  => $accessToken,
                     'refresh_token' => $refreshToken,

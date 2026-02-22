@@ -27,6 +27,13 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             SectionSeeder::class,
+            UsersSeeder::class,
+            CentersSeeder::class,
+            ServicesSeeder::class,
+            SubservicesSeeder::class,
+            ManageSubserviceSeeder::class,
+            CenterWorkSeeder::class,
+            ReservationSeeder::class,
         ]);
     }
 }

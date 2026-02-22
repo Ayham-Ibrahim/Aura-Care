@@ -91,4 +91,6 @@ class SectionController extends Controller
         $data = $this->sectionService->setPorfitPercentage($section, $request->validated());
         return $this->success($data, 'تم تحديث نسبة الربح للقسم بنجاح');
     }
+
+    
 }

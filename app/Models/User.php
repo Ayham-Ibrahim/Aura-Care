@@ -27,7 +27,10 @@ class User extends Authenticatable
         'age',
         'password',
         'v_location',
-        'h_location'
+        'h_location',
+        'avatar',
+        'sham_image',
+        'sham_code',
     ];
 
     /**

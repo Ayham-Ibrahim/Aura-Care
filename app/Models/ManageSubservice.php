@@ -27,4 +27,9 @@ class ManageSubservice extends Model
     public function subservice(){
         return $this->belongsTo(Subservice::class);
     }
+
+    public function reservations()
+    {
+        return $this->belongsToMany(Reservation::class, 'reservation_manage_subservice');
+    }
 }

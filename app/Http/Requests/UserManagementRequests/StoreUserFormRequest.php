@@ -28,12 +28,16 @@ class StoreUserFormRequest extends FormRequest
             'password' => 'required|string|min:6|confirmed',
             'gender' => 'required|string|max:255|in:male,female',
             'age' => 'required|integer|min:0',
+            'avatar' => 'nullable|image
+                        |mimes:png,jpg,jpeg
+                        |mimetypes:image/jpeg,image/png,image/jpg
+                        |max:5000',
             'v_location' => 'required|string|max:255',
             'h_location' => 'required|string|max:255',
             // 'is_admin' => 'nullable|boolean|in:0,1',
         ];
     }
-     /**
+    /**
      * Get custom attributes for validator errors.
      *
      * @return array<string, string>
@@ -50,9 +54,10 @@ class StoreUserFormRequest extends FormRequest
             // 'is_admin' => 'الدور',
             'gender' => 'الجنس',
             'age' => 'العمر',
+            'avatar' => 'الصورة الشخصية',
         ];
     }
-     /**
+    /**
      * Get custom messages for validator errors.
      *
      * @return array<string, string>
@@ -69,6 +74,11 @@ class StoreUserFormRequest extends FormRequest
             'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
             'in' => 'حقل :attribute يجب أن يكون أحد قيمتين ذكر أو أنثى',
 
+            
+            'avatar.image' => 'حقل :attribute يجب أن يكون صورة.',
+            'avatar.mimes' => 'الصورة يجب أن تكون من نوع: :values.',
+            'avatar.max' => 'حجم :attribute يجب ألا يتجاوز :max كيلوبايت (ما يعادل 5 ميجابايت).',
+            'avatar.mimetypes' => 'نوع ملف الصورة غير مسموح به. الأنواع المسموحة: :values.',
         ];
     }
 }

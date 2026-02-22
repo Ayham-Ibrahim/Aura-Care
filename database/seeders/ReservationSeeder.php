@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Models\Center\Center;
+use App\Models\ManageSubservice;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -13,36 +14,10 @@ class ReservationSeeder extends Seeder
 {
     public function run(): void
     {
-
-        User::query()->delete();
-        $users = [
-            [
-                'name' => 'أحمد محمد',
-                'email' => 'ahmed@example.com',
-                'password' => Hash::make('password123'),
-                'email_verified_at' => now(),
-            ],
-            [
-                'name' => 'سارة علي',
-                'email' => 'sara@example.com',
-                'password' => Hash::make('password123'),
-                'email_verified_at' => now(),
-            ],
-            [
-                'name' => 'خالد حسن',
-                'email' => 'khaled@example.com',
-                'password' => Hash::make('password123'),
-                'email_verified_at' => now(),
-            ],
-        ];
-
-        foreach ($users as $user) {
-            User::create($user);
-        }
-        // حذف الحجوزات السابقة
+        // مسح الحجوزات السابقة فقط، المستخدمين يعاد إنشاؤهم في Seeder منفصل
         Reservation::query()->delete();
 
-        // الحصول على البيانات
+        // الحصول على البيانات الأساسية
         $centers = Center::all();
         $users = User::all();
 
@@ -83,6 +58,7 @@ class ReservationSeeder extends Seeder
                 'total_amount' => rand(50, 5000), // مبلغ بين 50 و 5000
                 'status' => $status,
                 'date' => $date,
+                'deposit_amount' => rand(50, 5000)
             ];
 
             // إذا كان الحجز ملغى، أضف أسباب الإلغاء
@@ -96,7 +72,14 @@ class ReservationSeeder extends Seeder
                 $reservationData['payment_image'] = 'payments/payment_' . rand(1, 10) . '.jpg';
             }
 
-            Reservation::create($reservationData);
+            $reservation = Reservation::create($reservationData);
+
+            // إرفاق عناصر manage_subservice ذات علاقة بالمركز
+            $manageItems = ManageSubservice::where('center_id', $center->id)->get();
+            if ($manageItems->isNotEmpty()) {
+                $selected = $manageItems->random(rand(1, min(3, $manageItems->count())))->pluck('id')->toArray();
+                $reservation->manageSubservices()->attach($selected);
+            }
         }
 
         // إضافة بعض الأمثلة الواقعية
@@ -108,6 +91,7 @@ class ReservationSeeder extends Seeder
                 'status' => 'confirmed',
                 'date' => Carbon::now()->addDays(3)->setTime(14, 30),
                 'payment_image' => 'payments/receipt_001.jpg',
+                'deposit_amount' => 500,
             ],
             [
                 'center_id' => $centers->last()->id,
@@ -116,6 +100,7 @@ class ReservationSeeder extends Seeder
                 'status' => 'completed',
                 'date' => Carbon::now()->subDays(5)->setTime(10, 0),
                 'payment_image' => 'payments/receipt_002.jpg',
+                'deposit_amount' => 300,
             ],
             [
                 'center_id' => $centers->get(1)->id,
@@ -125,11 +110,18 @@ class ReservationSeeder extends Seeder
                 'date' => Carbon::now()->addDays(2)->setTime(16, 45),
                 'reason_for_cancellation' => 'تغيير في الموعد',
                 'cancellation_image' => 'cancellations/cancel_001.jpg',
+                'deposit_amount' => 600,
             ],
         ];
 
         foreach ($sampleReservations as $reservation) {
-            Reservation::create($reservation);
+            $res = Reservation::create($reservation);
+
+            // attach related manage_subservices if available
+            $manageItems = ManageSubservice::where('center_id', $reservation['center_id'])->get();
+            if ($manageItems->isNotEmpty()) {
+                $res->manageSubservices()->attach($manageItems->random()->pluck('id')->toArray());
+            }
         }
 
         $this->command->info('تم إنشاء ' . Reservation::count() . ' حجز بنجاح!');

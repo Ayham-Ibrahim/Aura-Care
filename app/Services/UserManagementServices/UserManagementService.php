@@ -52,6 +52,7 @@ class UserManagementService extends Service
                 'phone'             => $data['phone'],
                 'gender'            => $data['gender'],
                 'age'               => $data['age'],
+                'avatar'            => $data['avatar'] ?? null,
                 'password'          => Hash::make($data['password']),
                 'v_location'        => $data['v_location'],
                 'h_location'        => $data['h_location'],

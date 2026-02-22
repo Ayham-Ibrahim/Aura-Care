@@ -13,6 +13,7 @@ class Work extends Model
         'center_id',
         'service_id',
         'description',
+        'video_path',
     ];
 
     public function center()

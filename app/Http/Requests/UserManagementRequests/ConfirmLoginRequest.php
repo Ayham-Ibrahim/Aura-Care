@@ -23,7 +23,8 @@ class ConfirmLoginRequest extends FormRequest
     {
         return [
             'phone' => 'required|string',
-            'otp_code' => 'required|string|size:4'
+            'otp_code' => 'required|string|size:4',
+            'type' => 'required|string|in:user,center'
         ];
     }
 
@@ -34,7 +35,10 @@ class ConfirmLoginRequest extends FormRequest
             'phone.string' => 'رقم الهاتف يجب أن يكون نصاً',
             'otp_code.required' => 'كود التحقق مطلوب',
             'otp_code.string' => 'كود التحقق يجب أن يكون نصاً',
-            'otp_code.size' => 'كود التحقق يجب أن يكون 4 أرقام'
+            'otp_code.size' => 'كود التحقق يجب أن يكون 4 أرقام',
+            'type.required' => 'نوع المستخدم مطلوب',
+            'type.string' => 'نوع المستخدم يجب أن يكون نصاً',
+            'type.in' => 'نوع المستخدم غير صالح'
         ];
     }
 
@@ -42,7 +46,8 @@ class ConfirmLoginRequest extends FormRequest
     {
         return [
             'phone' => 'رقم الهاتف',
-            'otp_code' => 'كود التحقق'
+            'otp_code' => 'كود التحقق',
+            'type' => 'نوع المستخدم'
         ];
     }
 }

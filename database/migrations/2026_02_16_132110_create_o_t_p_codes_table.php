@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('works', function (Blueprint $table) {
+        Schema::create('otp_codes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('center_id')->constrained('centers')->cascadeOnDelete();
-            $table->foreignId('service_id')->constrained('services')->cascadeOnDelete();
-            $table->string('description');
-            $table->string('video_path')->nullable();
+            $table->string('phone');
+            $table->string('code');
+            $table->string('type'); // register, reset_password
+            $table->timestamp('expires_at');
+            $table->integer('attempts')->default(0);
             $table->timestamps();
+            $table->index(['phone', 'type']);
         });
     }
 
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('works');
+        Schema::dropIfExists('o_t_p_codes');
     }
 };

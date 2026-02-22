@@ -5,6 +5,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SubserviceController;
 use App\Http\Controllers\AdController;
 use App\Http\Controllers\BroadcastNotificationController;
+use App\Http\Controllers\Center\WorkController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserManagementControllers\CenterController;
 use App\Http\Controllers\UserManagementControllers\UserManagementController;
@@ -94,4 +95,39 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('reservations', ReservationController::class);
     Route::patch('reservations/{reservation}/status', [ReservationController::class, 'updateStatus']);
+});
+
+// ---------------------------
+//  User Profile 
+// ---------------------------
+
+Route::prefix('user')->middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [UserManagementController::class, 'profile']);
+    Route::put('/profile', [UserManagementController::class, 'updateProfile']);
+});
+
+
+// ---------------------------
+//  Center App 
+// ---------------------------
+
+Route::prefix('center')->middleware('auth:sanctum')->group(function () {
+    // Center Services
+    Route::get('services', [CenterController::class, 'getServices']);
+    Route::get('subservices/{service_id}', [CenterController::class, 'showSubservicesByService']);
+    Route::patch('subservices', [CenterController::class, 'updateSubservice']);
+
+    // Center Works
+    Route::get('works/service/{service}', [WorkController::class, 'getWorkByService']);
+    Route::post('works/service/{service}', [WorkController::class, 'storeWork']);
+    Route::get('works/{work}', [WorkController::class, 'getWorkById']);
+    Route::delete('works/{work}', [WorkController::class, 'deleteWork']);
+
+    // Center Reservations
+    Route::get('reservations', [ReservationController::class, 'getCenterReservation']);
+    Route::get('reservations/{reservation}', [ReservationController::class, 'getReservationById']);
+    Route::patch('reservations/{reservation}/accept', [ReservationController::class, 'acceptReservation']);
+    Route::patch('reservations/{reservation}/complete', [ReservationController::class, 'reservationCompleted']);
+    Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'cancelReservation']);
+    Route::get('reservations/{reservation}/user', [ReservationController::class, 'getReservationUserInfo']);
 });

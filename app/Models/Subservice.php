@@ -16,4 +16,8 @@ class Subservice extends Model
     {
         return $this->belongsTo(Service::class);
     }
+    public function manageSubservices()
+    {
+        return $this->hasMany(ManageSubservice::class);
+    }
 }

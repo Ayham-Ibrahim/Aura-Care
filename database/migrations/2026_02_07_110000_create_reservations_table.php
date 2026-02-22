@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('center_id')->constrained('centers')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->decimal('total_amount', 10, 2)->nullable();
-            $table->string('status')->default('pending'); // pending, confirmed, cancelled, completed
+            $table->decimal('deposit_amount', 10, 2)->nullable();
+            $table->string('status')->default('pending'); // pending, confirmed,processing ,cancelled, completed
             $table->dateTime('date')->nullable();
             $table->string('payment_image')->nullable();
             $table->string('cancellation_image')->nullable();

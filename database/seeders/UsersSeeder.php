@@ -74,7 +74,7 @@ class UsersSeeder extends Seeder
             ],
             [
                 'name' => 'مستخدم إداري',
-                'phone' => '01010000000',
+                'phone' => '+963910000000',
                 'password' => Hash::make('adminpass'),
                 'is_admin' => 1,
                 'gender' => 'male',

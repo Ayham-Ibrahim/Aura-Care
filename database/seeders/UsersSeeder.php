@@ -27,8 +27,8 @@ class UsersSeeder extends Seeder
                 'v_location' => '124',
                 'h_location' => '32',
                 // 'avatar' => 'avatar1.png',
-                'sham_image' => 'sham1.png',
-                'sham_code' => '433c1de779538ec7e82dc81bd8fe2a4f',
+                // 'sham_image' => 'sham1.png',
+                // 'sham_code' => '433c1de779538ec7e82dc81bd8fe2a4f',
             ],
             [
                 'name' => 'سارة علي',
@@ -41,8 +41,8 @@ class UsersSeeder extends Seeder
                 'v_location' => '125',
                 'h_location' => '33',
                 // 'avatar' => 'avatar2.png',
-                'sham_image' => 'sham2.png',
-                'sham_code' => 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7',
+                // 'sham_image' => 'sham2.png',
+                // 'sham_code' => 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7',
             ],
             [
                 'name' => 'خالد حسن',
@@ -55,8 +55,8 @@ class UsersSeeder extends Seeder
                 'v_location' => '126',
                 'h_location' => '34',
                 // 'avatar' => 'avatar3.png',
-                'sham_image' => 'sham3.png',
-                'sham_code' => 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7',
+                // 'sham_image' => 'sham3.png',
+                // 'sham_code' => 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7',
             ],
             [
                 'name' => 'مرحى الفون',
@@ -69,8 +69,8 @@ class UsersSeeder extends Seeder
                 'v_location' => '127',
                 'h_location' => '35',
                 // 'avatar' => 'avatar4.png',
-                'sham_image' => 'sham4.png',
-                'sham_code' => 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7',
+                // 'sham_image' => 'sham4.png',
+                // 'sham_code' => 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7',
             ],
             [
                 'name' => 'مستخدم إداري',
@@ -83,8 +83,8 @@ class UsersSeeder extends Seeder
                 'v_location' => '128',
                 'h_location' => '36',
                 // 'avatar' => 'admin_avatar.png',
-                'sham_image' => 'admin_sham.png',
-                'sham_code' => 'adminshamcode1234567890abcdef',
+                // 'sham_image' => 'admin_sham.png',
+                // 'sham_code' => 'adminshamcode1234567890abcdef',
             ],
         ];
 

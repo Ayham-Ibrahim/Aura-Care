@@ -37,6 +37,16 @@ class UpdateUserProfileRequest extends FormRequest
             'gender' => 'nullable|string|max:255|in:male,female',
             'password'      => 'nullable|string|min:6|max:255|confirmed',
             'age' => 'nullable|integer|min:0',
+            'avatar' =>'nullable|image
+                        |mimes:png,jpg,jpeg
+                        |mimetypes:image/jpeg,image/png,image/jpg
+                        |max:5000',
+
+            'sham_code' => 'nullable|string|max:255',
+            'sham_image' => 'nullable|image
+                        |mimes:png,jpg,jpeg
+                        |mimetypes:image/jpeg,image/png,image/jpg
+                        |max:5000',
         ];
     }
     /**

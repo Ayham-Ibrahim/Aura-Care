@@ -52,7 +52,7 @@ class UserManagementService extends Service
                 'phone'             => $data['phone'],
                 'gender'            => $data['gender'],
                 'age'               => $data['age'],
-                'avatar'            => $data['avatar'] ?? null,
+                'avatar'            => isset($data['avatar']) ? FileStorage::storeFile($data['avatar'], 'avatars', 'img') : null,
                 'password'          => Hash::make($data['password']),
                 'v_location'        => $data['v_location'],
                 'h_location'        => $data['h_location'],
@@ -529,8 +529,21 @@ class UserManagementService extends Service
                 'password' => $data['password'] ?? $user->password,
                 'v_location' => $data['v_location'] ?? $user->v_location,
                 'h_location' => $data['h_location'] ?? $user->h_location,
-                'gender' => $data['gender'] ,
+                'gender' => $data['gender'] ?? $user->gender,
                 'age' => $data['age'] ?? $user->age,
+                'avatar' => FileStorage::fileExists(
+                    $data['avatar'] ?? null,
+                    $user->avatar,
+                    'User',
+                    'img'
+                ) ?? $user->avatar,
+                'sham_code' => $data['sham_code'] ?? $user->sham_code,
+                'sham_image'=> FileStorage::fileExists(
+                    $data['sham_image'] ?? null,
+                    $user->sham_image,
+                    'User',
+                    'img'
+                ) ?? $user->sham_image,
 
             ]);
 

@@ -18,12 +18,12 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'phone' => '0123456789',
-            'password' => Hash::make('123456789'), 
-            'is_admin' => 1,
-        ]);
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'phone' => '0123456789',
+        //     'password' => Hash::make('123456789'), 
+        //     'is_admin' => 1,
+        // ]);
 
         $this->call([
             SectionSeeder::class,

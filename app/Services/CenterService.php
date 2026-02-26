@@ -162,7 +162,17 @@ class CenterService extends Service
     {
         try {
             $center = Auth::guard('center')->user();
-            $subservices = Subservice::where('service_id', $service_id)->get(); 
+            $subservices = Subservice::with(['manageSubservices' => function ($query) use ($center) {
+                $query->where('center_id', $center->id)->select('id', 'is_active', 'center_id', 'subservice_id');
+            }])->where('service_id', $service_id)->get();
+            // $subservices = Subservice::where('service_id', $service_id)->get();
+
+            $subservices->each(function ($subservice) {
+                $subservice->is_active = $subservice->manageSubservices->isNotEmpty()
+                    ? $subservice->manageSubservices->first()->is_active
+                    : 0;
+                unset($subservice->manageSubservices);
+            });
             return $subservices;
         } catch (\Exception $e) {
             Log::error('Error fetching subservices for center', ['center_id' => $center->id, 'error' => $e->getMessage()]);

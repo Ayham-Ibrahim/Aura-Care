@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Center\Center;
+use App\Models\ManageSubservice;
 use App\Models\Section;
+use App\Models\Subservice;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -69,9 +71,21 @@ class CentersSeeder extends Seeder
 
         foreach ($centersData as $data) {
             $center = Center::create($data);
-            $center->services()->attach($center->section->services->random(2)->pluck('id')->toArray());
+
+            $services = $center->section->services->random(2)->pluck('id')->toArray();
+
+            $center->services()->attach($services);
+            $subServices = Subservice::whereIn('service_id', $services)->pluck('id')->toArray();
+            ManageSubservice::insert(
+                array_map(function ($subServiceId) use ($center) {
+                    return [
+                        'center_id' => $center->id,
+                        'subservice_id' => $subServiceId,
+                    ];
+                }, $subServices)
+            );
         }
 
-        $this->command->info('تم إنشاء ' . Center::count() . ' مراكز.');
+        $this->command->info( count($subServices) . ' ;;;manage_subservice.');
     }
 }

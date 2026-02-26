@@ -29,9 +29,8 @@ class DatabaseSeeder extends Seeder
             SectionSeeder::class,
             UsersSeeder::class,
             ServicesSeeder::class,
-            CentersSeeder::class,
             SubservicesSeeder::class,
-            ManageSubserviceSeeder::class,
+            CentersSeeder::class,
             CenterWorkSeeder::class,
             ReservationSeeder::class,
         ]);

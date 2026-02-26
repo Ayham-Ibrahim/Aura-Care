@@ -116,6 +116,7 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     Route::get('services', [CenterController::class, 'getServices']);
     Route::get('subservices/{service_id}', [CenterController::class, 'showSubservicesByService']);
     Route::patch('subservices', [CenterController::class, 'updateSubservice']);
+    Route::get('subservices/id/{subservice_id}', [CenterController::class, 'getSubservicesById']);
 
     // Center Works
     Route::get('works/service/{service}', [WorkController::class, 'getWorkByService']);

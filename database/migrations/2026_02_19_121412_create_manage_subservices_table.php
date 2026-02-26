@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('center_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('subservice_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->decimal('price')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->boolean('is_active')->default(false);
 
 
             // Points feature for the sub-service

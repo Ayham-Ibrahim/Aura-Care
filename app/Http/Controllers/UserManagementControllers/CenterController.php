@@ -70,12 +70,21 @@ class CenterController extends Controller
     public function showSubservicesByService($sevice_id)
     {
         $subservices = $this->centerService->getCenterSubservicesByService($sevice_id);
-        return $this->success($subservices, 'تم الحصول على خدمات المركز بنجاح');
+        return $this->success($subservices, 'تم الحصول على خدمات المركز الفرعية بنجاح');
     }
 
     public function updateSubservice(UpdateCenterSubsevrice $request)
     {
         $subservices = $this->centerService->editSubservices($request->validated());
-        return $this->success($subservices, 'تم الحصول على خدمات المركز بنجاح');
+        return $this->success($subservices, 'تم تعديل الخدمة بنجاح');
+    }
+
+    public function getSubservicesById($subservice_id)
+    {
+        $subservices = $this->centerService->subservicesById($subservice_id);
+        if(!$subservices){
+            return $this->notFoundResponse('الخدمة الفرعية غير موجودة');
+        }
+        return $this->success($subservices, 'تم الحصول على الخدمات الفرعية بنجاح');
     }
 }

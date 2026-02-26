@@ -27,7 +27,7 @@ Route::post('register', [UserManagementController::class, 'register']);
 Route::post('confirm-registration', [UserManagementController::class, 'confirmRegistration']);
 
 // تسجيل الدخول والتأكيد
-Route::post('login', [UserManagementController::class, 'login']);
+Route::post('login', [UserManagementController::class, 'login'])->name('login');
 Route::post('confirm-login', [UserManagementController::class, 'confirmLogin']);
 Route::post('refresh', [UserManagementController::class, 'refreshToken']);
 
@@ -116,6 +116,7 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     Route::get('services', [CenterController::class, 'getServices']);
     Route::get('subservices/{service_id}', [CenterController::class, 'showSubservicesByService']);
     Route::patch('subservices', [CenterController::class, 'updateSubservice']);
+    Route::get('subservices/id/{subservice_id}', [CenterController::class, 'getSubservicesById']);
 
     // Center Works
     Route::get('works/service/{service}', [WorkController::class, 'getWorkByService']);

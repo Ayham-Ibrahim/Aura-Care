@@ -6,6 +6,7 @@ use App\Http\Controllers\SubserviceController;
 use App\Http\Controllers\AdController;
 use App\Http\Controllers\BroadcastNotificationController;
 use App\Http\Controllers\Center\WorkController;
+use App\Http\Controllers\Center\WorkingHourController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserManagementControllers\CenterController;
 use App\Http\Controllers\UserManagementControllers\UserManagementController;
@@ -131,4 +132,9 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     Route::patch('reservations/{reservation}/complete', [ReservationController::class, 'reservationCompleted']);
     Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'cancelReservation']);
     Route::get('reservations/{reservation}/user', [ReservationController::class, 'getReservationUserInfo']);
+
+    // Center working hours (24/7 default, editable by center)
+    Route::get('working-hours', [WorkingHourController::class, 'index']);
+    Route::put('working-hours', [WorkingHourController::class, 'update']);
+    Route::post('working-hours/reset', [WorkingHourController::class, 'resetToDefault']);
 });

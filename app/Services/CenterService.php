@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Center\Center;
 use App\Models\Center\Work;
 use App\Models\Center\WorkFile;
+use App\Services\Center\WorkingHourService;
 // use App\Models\ManageSubservice;
 use App\Models\Subservice;
 use App\Models\ManageSubservice;
@@ -17,6 +18,13 @@ use Illuminate\Support\Facades\Log;
 
 class CenterService extends Service
 {
+    protected $workingHourService;
+
+    public function __construct(WorkingHourService $workingHourService)
+    {
+        $this->workingHourService = $workingHourService;
+    }
+
     public function getAllCenters($perPage = 10)
     {
         return Center::select(
@@ -40,7 +48,7 @@ class CenterService extends Service
 
     public function createCenter(array $data)
     {
-        try {
+        // try {
             DB::beginTransaction();
             $center = Center::create([
                 'section_id' => $data['section_id'],
@@ -58,6 +66,7 @@ class CenterService extends Service
             if (!empty($data['services']) && is_array($data['services'])) {
                 $center->services()->sync($data['services']);
 
+                // also attach all subservices under those services with default inactive status
                 $subServices = Subservice::whereIn('service_id', $data['services'])->pluck('id')->toArray();
                 ManageSubservice::insert(
                     array_map(function ($subServiceId) use ($center) {
@@ -68,14 +77,19 @@ class CenterService extends Service
                     }, $subServices)
                 );
             }
+
+            // creating a center we need default working hours (24/7)
+            $this->workingHourService->setDefaultForCenter($center);
+
             DB::commit();
 
+
             return $center;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error creating center', ['data' => $data, 'error' => $e->getMessage()]);
-            $this->throwExceptionJson('حدث خطأ ما أثناء انشاء المركز');
-        }
+        // } catch (\Exception $e) {
+        //     DB::rollBack();
+        //     Log::error('Error creating center', ['data' => $data, 'error' => $e->getMessage()]);
+        //     $this->throwExceptionJson('حدث خطأ ما أثناء انشاء المركز');
+        // }
     }
 
     public function updateCenter(Center $center, array $data)

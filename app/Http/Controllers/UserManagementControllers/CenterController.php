@@ -7,6 +7,7 @@ use App\Http\Requests\Center\StoreCenterRequest;
 use App\Http\Requests\Center\StoreWorkRequest;
 use App\Http\Requests\Center\UpdateCenterRequest;
 use App\Http\Requests\Center\UpdateCenterSubsevrice;
+use App\Http\Requests\Center\UpdateCenterPaymentInfoRequest;
 use App\Models\Center\Center;
 use App\Services\CenterService;
 use Illuminate\Http\Request;
@@ -86,5 +87,23 @@ class CenterController extends Controller
             return $this->notFoundResponse('الخدمة الفرعية غير موجودة');
         }
         return $this->success($subservices, 'تم الحصول على الخدمات الفرعية بنجاح');
+    }
+
+    /**
+     * Return payment information (sham code/image) for a center.
+     */
+    public function getPaymentInfCenter()
+    {
+        $data = $this->centerService->getPaymentInfCenter();
+        return $this->success($data, 'تم الحصول على بيانات الدفع بنجاح');
+    }
+
+    /**
+     * Update sham code/image for a center.
+     */
+    public function updatePaymentInfCenter(UpdateCenterPaymentInfoRequest $request)
+    {
+        $data = $this->centerService->updatePaymentInfCenter($request->validated());
+        return $this->success($data, 'تم تحديث بيانات الدفع بنجاح');
     }
 }

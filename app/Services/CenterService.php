@@ -172,6 +172,41 @@ class CenterService extends Service
         }
     }
 
+    /**
+     * Retrieve payment information (sham code and image) for a given center.
+     *
+     * @param \App\Models\Center\Center $center
+     * @return array
+     */
+    public function getPaymentInfCenter()
+    {
+        $center = Auth::guard('center')->user();
+        // simply return the two columns; could be null if not set
+        return $center->only(['sham_image', 'sham_code']);
+    }
+
+    /**
+     * Update payment information for a center.
+     * Accepts an optional image file; existing image will be replaced if provided.
+     *
+     * @param \App\Models\Center\Center $center
+     * @param array $data
+     * @return \App\Models\Center\Center
+     */
+    public function updatePaymentInfCenter( array $data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $center->update([
+                'sham_code' => $data['sham_code'] ?? $center->sham_code,
+                'sham_image' => FileStorage::fileExists($data['sham_image'] ?? null, $center->sham_image, 'Center', 'img') ?? $center->sham_image,
+            ]);
+            return $center->only(['sham_image', 'sham_code']);
+        } catch (\Exception $e) {
+            Log::error('Error updating payment info for center', ['center_id' => $center->id, 'data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل بيانات الدفع للمركز');
+        }
+    }
     public function getCenterSubservicesByService($service_id)
     {
         try {

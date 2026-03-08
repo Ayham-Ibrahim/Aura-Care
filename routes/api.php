@@ -137,4 +137,10 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     Route::get('working-hours', [WorkingHourController::class, 'index']);
     Route::put('working-hours', [WorkingHourController::class, 'update']);
     Route::post('working-hours/reset', [WorkingHourController::class, 'resetToDefault']);
+
+    
+    // additional endpoints for sham payment info
+    Route::get('payment-info', [CenterController::class, 'getPaymentInfCenter']);
+    Route::patch('payment-info', [CenterController::class, 'updatePaymentInfCenter']);
+
 });

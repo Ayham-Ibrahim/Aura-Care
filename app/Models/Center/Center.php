@@ -30,13 +30,13 @@ class Center extends Model
         'location_v',
         'phone',
         'password',
-        'reliable',
         'owner_name',
         'owner_number',
         'rating',
         'sham_image',
         'sham_code',
         'phone_verified_at',
+        'verification_status',
     ];
 
     protected $hidden = [
@@ -74,6 +74,14 @@ class Center extends Model
     public function manageSubservices()
     {
         return $this->hasMany(ManageSubservice::class);
+    }
+
+    /**
+     * associated documents for identity/commercial record
+     */
+    public function documents()
+    {
+        return $this->hasOne(CenterDocument::class);
     }
 
     public function getWorkingHoursFormattedAttribute()

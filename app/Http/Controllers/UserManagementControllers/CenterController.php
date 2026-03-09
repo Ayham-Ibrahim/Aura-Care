@@ -8,6 +8,7 @@ use App\Http\Requests\Center\StoreWorkRequest;
 use App\Http\Requests\Center\UpdateCenterRequest;
 use App\Http\Requests\Center\UpdateCenterSubsevrice;
 use App\Http\Requests\Center\UpdateCenterPaymentInfoRequest;
+use App\Http\Requests\Center\StoreCenterDocumentsRequest;
 use App\Models\Center\Center;
 use App\Services\CenterService;
 use Illuminate\Http\Request;
@@ -105,5 +106,14 @@ class CenterController extends Controller
     {
         $data = $this->centerService->updatePaymentInfCenter($request->validated());
         return $this->success($data, 'تم تحديث بيانات الدفع بنجاح');
+    }
+
+    /**
+     * Store or update the three required images and mark verification pending.
+     */
+    public function uploadDocuments(StoreCenterDocumentsRequest $request)
+    {
+        $docs = $this->centerService->storeCenterDocuments($request->validated());
+        return $this->success($docs, 'تم رفع الوثائق بنجاح');
     }
 }

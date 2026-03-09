@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Center\Center;
 use App\Models\Center\Work;
 use App\Models\Center\WorkFile;
+use App\Models\Center\CenterDocument;
 use App\Services\Center\WorkingHourService;
 // use App\Models\ManageSubservice;
 use App\Models\Subservice;
@@ -48,7 +49,7 @@ class CenterService extends Service
 
     public function createCenter(array $data)
     {
-        // try {
+        try {
             DB::beginTransaction();
             $center = Center::create([
                 'section_id' => $data['section_id'],
@@ -85,11 +86,11 @@ class CenterService extends Service
 
 
             return $center;
-        // } catch (\Exception $e) {
-        //     DB::rollBack();
-        //     Log::error('Error creating center', ['data' => $data, 'error' => $e->getMessage()]);
-        //     $this->throwExceptionJson('حدث خطأ ما أثناء انشاء المركز');
-        // }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating center', ['data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء انشاء المركز');
+        }
     }
 
     public function updateCenter(Center $center, array $data)
@@ -185,15 +186,8 @@ class CenterService extends Service
         return $center->only(['sham_image', 'sham_code']);
     }
 
-    /**
-     * Update payment information for a center.
-     * Accepts an optional image file; existing image will be replaced if provided.
-     *
-     * @param \App\Models\Center\Center $center
-     * @param array $data
-     * @return \App\Models\Center\Center
-     */
-    public function updatePaymentInfCenter( array $data)
+
+    public function updatePaymentInfCenter(array $data)
     {
         try {
             $center = Auth::guard('center')->user();
@@ -258,6 +252,28 @@ class CenterService extends Service
         } catch (\Exception $e) {
             Log::error('Error fetching subservice by id for center', ['center_id' => $center->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطاء ما اثناء جلب الخدمة الخاصة بالمركز');
+        }
+    }
+
+    public function storeCenterDocuments($data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            DB::beginTransaction();
+            $centerDocument = $center->documents()->updateorcreate([
+                'center_id' => $center->id
+                ],[
+                'id_front' => isset($data['id_front']) ? FileStorage::storeFile($data['id_front'], 'CenterDocuments', 'img') : null,
+                'id_back' => isset($data['id_back']) ? FileStorage::storeFile($data['id_back'], 'CenterDocuments', 'img') : null,
+                'commercial_record' => isset($data['commercial_record']) ? FileStorage::storeFile($data['commercial_record'], 'CenterDocuments', 'img') : null,
+            ]);
+            $center->update(['verification_status' => 'pending']);
+            DB::commit();
+            return $centerDocument;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error storing center documents', ['error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تخزين وثائق المركز');
         }
     }
 }

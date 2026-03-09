@@ -138,6 +138,9 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     Route::put('working-hours', [WorkingHourController::class, 'update']);
     Route::post('working-hours/reset', [WorkingHourController::class, 'resetToDefault']);
 
+    // Center document uploads for verification
+    Route::post('documents', [CenterController::class, 'uploadDocuments']);
+
     
     // additional endpoints for sham payment info
     Route::get('payment-info', [CenterController::class, 'getPaymentInfCenter']);

@@ -9,6 +9,7 @@ use App\Http\Requests\Center\UpdateCenterRequest;
 use App\Http\Requests\Center\UpdateCenterSubsevrice;
 use App\Http\Requests\Center\UpdateCenterPaymentInfoRequest;
 use App\Http\Requests\Center\StoreCenterDocumentsRequest;
+use App\Http\Requests\Center\UpdateCenterLocation;
 use App\Models\Center\Center;
 use App\Services\CenterService;
 use Illuminate\Http\Request;
@@ -115,5 +116,23 @@ class CenterController extends Controller
     {
         $docs = $this->centerService->storeCenterDocuments($request->validated());
         return $this->success($docs, 'تم رفع الوثائق بنجاح');
+    }
+
+    /**
+     * Get the current authenticated center's geographic location.
+     */
+    public function getCenterLocation()
+    {
+        $loc = $this->centerService->getCenterLocation();
+        return $this->success($loc, 'تم الحصول على موقع المركز بنجاح');
+    }
+
+    /**
+     * Update the authenticated center's coordinates.
+     */
+    public function updateCenterLocation(UpdateCenterLocation $request)
+    {
+        $center = $this->centerService->updateCenterLocation($request->validated());
+        return $this->success($center->only(['location_h','location_v']), 'تم تحديث موقع المركز بنجاح');
     }
 }

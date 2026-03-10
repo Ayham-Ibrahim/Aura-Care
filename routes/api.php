@@ -141,7 +141,10 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     // Center document uploads for verification
     Route::post('documents', [CenterController::class, 'uploadDocuments']);
 
-    
+    // Center location
+    Route::get('location', [CenterController::class, 'getCenterLocation']);
+    Route::patch('location', [CenterController::class, 'updateCenterLocation']);
+
     // additional endpoints for sham payment info
     Route::get('payment-info', [CenterController::class, 'getPaymentInfCenter']);
     Route::patch('payment-info', [CenterController::class, 'updatePaymentInfCenter']);

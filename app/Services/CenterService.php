@@ -201,6 +201,34 @@ class CenterService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء تعديل بيانات الدفع للمركز');
         }
     }
+
+    /**
+     * Get current center location.
+     *
+     * @return array
+     */
+    public function getCenterLocation()
+    {
+        $center = Auth::guard('center')->user();
+        return $center->only(['location_h', 'location_v']);
+    }
+
+    
+    public function updateCenterLocation(array $data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $center->update([
+                'location_h' => $data['location_h'],
+                'location_v' => $data['location_v'],
+            ]);
+            return $center;
+        } catch (\Exception $e) {
+            Log::error('Error updating center location', [ 'data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل موقع المركز');
+        }
+    }
+
     public function getCenterSubservicesByService($service_id)
     {
         try {

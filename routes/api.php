@@ -126,7 +126,12 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::delete('/favorite-centers/{center}', [UserController::class, 'removeFavoriteCenter']);
     // detailed center info for user
     Route::get('/center/{center}', [UserController::class, 'centerDetails']);
-});
+        // filter subservices or works by service for a specific center
+    Route::get('centers/{center}/subservices/service/{service}', [UserController::class, 'getSubservicesForUser']);
+    Route::get('centers/{center}/works/service/{service}', [UserController::class, 'getWorksByServiceForUser']);
+    Route::get('works/{work}', [WorkController::class, 'getWorkById']);
+    
+}); 
 
 
 // ---------------------------

@@ -92,6 +92,15 @@ class Center extends Model
         return $this->hasMany(\App\Models\Point::class);
     }
 
+    /**
+     * users who have favorited this center
+     */
+    public function favoredByUsers()
+    {
+        return $this->belongsToMany(\App\Models\User::class, 'center_user')
+                    ->withTimestamps();
+    }
+
     public function getWorkingHoursFormattedAttribute()
     {
         $hours = $this->workingHours()->orderBy('day')->get();

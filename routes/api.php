@@ -9,6 +9,7 @@ use App\Http\Controllers\Center\WorkController;
 use App\Http\Controllers\Center\WorkingHourController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserManagementControllers\CenterController;
+use App\Http\Controllers\UserManagementControllers\UserController;
 use App\Http\Controllers\UserManagementControllers\UserManagementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -98,11 +99,13 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::patch('reservations/{reservation}/status', [ReservationController::class, 'updateStatus']);
 });
 
-// ---------------------------
-//  User Profile 
-// ---------------------------
+
 
 Route::prefix('user')->middleware('auth:sanctum')->group(function () {
+    // ---------------------------
+    //  User Profile 
+    // ---------------------------
+
     Route::get('/profile', [UserManagementController::class, 'profile']);
     Route::put('/profile', [UserManagementController::class, 'updateProfile']);
     // location endpoints
@@ -113,6 +116,16 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::patch('/payment-info', [UserManagementController::class, 'updateUserPaymentInfo']);
     // user points log
     Route::get('/points', [UserManagementController::class, 'getUserPoints']);
+
+    // ---------------------------
+    //  User favorite 
+    // ---------------------------
+
+    // favorite centers (list, remove)
+    Route::get('/favorite-centers', [UserController::class, 'favoriteCenters']);
+    Route::delete('/favorite-centers/{center}', [UserController::class, 'removeFavoriteCenter']);
+    // detailed center info for user
+    Route::get('/center/{center}', [UserController::class, 'centerDetails']);
 });
 
 
@@ -158,5 +171,4 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     // additional endpoints for sham payment info
     Route::get('payment-info', [CenterController::class, 'getPaymentInfCenter']);
     Route::patch('payment-info', [CenterController::class, 'updatePaymentInfCenter']);
-
 });

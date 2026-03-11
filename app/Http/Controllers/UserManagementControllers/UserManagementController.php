@@ -254,9 +254,10 @@ class UserManagementController extends Controller
     /**
      * user profile
      */
-    public function profile(){
-        $user = Auth::user();
-        return $this->success($user,'تم جلب بيانات المستخدم بنجاح');
+    public function profile()
+    {
+        $data = $this->service->getBasicProfile();
+        return $this->success($data, 'تم جلب بيانات المستخدم بنجاح');
     }
 
     /**
@@ -264,8 +265,8 @@ class UserManagementController extends Controller
      */
     public function updateProfile(UpdateUserProfileRequest $request)
     {
-        $updated = $this->service->updateProfile( $request->validated());
-        return $this->success($updated, 'تم تحديث بياناتك بنجاح');
+        $data = $this->service->updateBasicProfile($request->validated());
+        return $this->success($data, 'تم تحديث بياناتك بنجاح');
     }
 
     /**

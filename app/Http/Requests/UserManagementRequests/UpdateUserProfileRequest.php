@@ -26,27 +26,17 @@ class UpdateUserProfileRequest extends FormRequest
     {
         return [
             'name' => 'nullable|string|max:255',
-            'v_location'    => 'nullable|string|max:255',
-            'h_location'    => 'nullable|string|max:255',
             'phone' => [
                 'nullable',
                 'string',
                 'max:255',
                 Rule::unique('users', 'phone')->ignore(Auth::id())
             ],
-            'gender' => 'nullable|string|max:255|in:male,female',
-            'password'      => 'nullable|string|min:6|max:255|confirmed',
-            'age' => 'nullable|integer|min:0',
             'avatar' =>'nullable|image
                         |mimes:png,jpg,jpeg
                         |mimetypes:image/jpeg,image/png,image/jpg
                         |max:5000',
 
-            'sham_code' => 'nullable|string|max:255',
-            'sham_image' => 'nullable|image
-                        |mimes:png,jpg,jpeg
-                        |mimetypes:image/jpeg,image/png,image/jpg
-                        |max:5000',
         ];
     }
     /**
@@ -59,12 +49,7 @@ class UpdateUserProfileRequest extends FormRequest
         return [
             'name' => 'اسم المستخدم',
             'phone' => 'رقم الواتساب',
-            'password' => 'كلمة المرور',
-            'password_confirmation' => 'تأكيد كلمة المرور',
-            'v_location' => 'الاحداثيات العمودية',
-            'h_location' => 'الاحداثيات الأفقية',
-            'gender' => 'الجنس',
-            'age' => 'العمر',
+            'avatar' => 'الصورة الشخصية',
         ];
     }
     /**

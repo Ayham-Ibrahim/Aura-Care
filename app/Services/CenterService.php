@@ -264,6 +264,42 @@ class CenterService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء تعديل شعار المركز');
         }
     }
+
+    /**
+     * Return a simple listing of all centers with just id, name and logo.
+     * No pagination or other extraneous columns. This complements
+     * getAllCenters which is used by the main `index` action.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function listCentersBasic()
+    {
+        return Center::select('id', 'name', 'logo')
+            ->get();
+    }
+
+    /**
+     * Fetch all managed subservices that have a points value defined.
+     * Each record includes the points/from/to fields along with the
+     * related center (id,name,logo) and subservice (id,name,image).
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getSubservicesHasPoints()
+    {
+        try {
+            return ManageSubservice::with([
+                'center:id,name,logo',
+                'subservice:id,name,image'
+            ])
+            ->select('id','center_id','subservice_id','points','from','to')
+            ->where('activating_points', '=', 1)
+            ->get();
+        } catch (\Exception $e) {
+            Log::error('Error fetching subservices with points', ['error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب الخدمات الفرعية التي تحتوي على نقاط');
+        }
+    }
     public function getCenterSubservicesByService($service_id)
     {
         try {

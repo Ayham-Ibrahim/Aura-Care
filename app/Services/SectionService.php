@@ -38,6 +38,19 @@ class SectionService extends Service
             ->get();
     }
 
+    /**
+     * Return a simple list of all sections, only id/name/image.
+     * Useful when the client doesn't need the profit percentage or
+     * pagination behavior of getAllSections().
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function listSectionsBasic()
+    {
+        return Section::select('id', 'name', 'image')
+            ->get();
+    }
+
     public function createSection(array $data)
     {
         try {

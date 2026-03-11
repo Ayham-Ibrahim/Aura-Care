@@ -90,7 +90,7 @@ class ServiceService extends ServicesService
     {
         try {
             // return $section_id;
-            $services = Service::where('section_id', $section->id)->get();
+            $services = Service::where('section_id', $section->id)->select('id', 'name', 'image','section_id')->get();
             return $services;
         } catch (\Exception $e) {
             Log::error('Error fetching services by section', ['section_id' => $section->id, 'error' => $e->getMessage()]);

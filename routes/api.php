@@ -13,6 +13,7 @@ use App\Http\Controllers\UserManagementControllers\UserController;
 use App\Http\Controllers\UserManagementControllers\UserManagementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Attribute\AsController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -130,6 +131,15 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('centers/{center}/subservices/service/{service}', [UserController::class, 'getSubservicesForUser']);
     Route::get('centers/{center}/works/service/{service}', [UserController::class, 'getWorksByServiceForUser']);
     Route::get('works/{work}', [WorkController::class, 'getWorkById']);
+
+
+
+    Route::get('services/by-section/{section}', [ServiceController::class, 'getServicesBySection']);
+    Route::get('ads', [AdController::class, 'index']);
+
+    Route::get('sections/basic', [SectionController::class, 'listBasic']);
+    Route::get('centers/basic', [CenterController::class, 'listBasicCenters']);
+    Route::get('subservices/has-points', [CenterController::class, 'getSubservicesHasPoints']);
     
 }); 
 

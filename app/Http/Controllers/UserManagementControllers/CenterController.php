@@ -154,4 +154,22 @@ class CenterController extends Controller
         $center = $this->centerService->updateCenterLocation($request->validated());
         return $this->success($center->only(['location_h','location_v']), 'تم تحديث موقع المركز بنجاح');
     }
+
+    /**
+     * Administrator helper – simple center listing.
+     */
+    public function listBasicCenters()
+    {
+        $centers = $this->centerService->listCentersBasic();
+        return $this->success($centers, 'تم جلب قائمة المراكز الأساسية بنجاح');
+    }
+
+    /**
+     * Administrator helper – all managed subservices that have points.
+     */
+    public function getSubservicesHasPoints()
+    {
+        $data = $this->centerService->getSubservicesHasPoints();
+        return $this->success($data, 'تم جلب الخدمات الفرعية المحتوية على نقاط بنجاح');
+    }
 }

@@ -46,6 +46,15 @@ class SectionController extends Controller
     }
 
     /**
+     * Return only the basic section fields (id, name, image).
+     */
+    public function listBasic()
+    {
+        $sections = $this->sectionService->listSectionsBasic();
+        return $this->success($sections, 'تم جلب قائمة الأقسام الأساسية بنجاح');
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreSectionRequest $request)

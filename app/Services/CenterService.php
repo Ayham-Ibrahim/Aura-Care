@@ -228,7 +228,42 @@ class CenterService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء تعديل موقع المركز');
         }
     }
+    
+    /**
+     * Fetch core profile information for authenticated center.
+     *
+     * @return array
+     */
+    public function getCenterProfileInfo()
+    {
+        $center = Auth::guard('center')->user();
+        return $center->only([
+            'verification_status',
+            'rating',
+            'phone',
+            'name',
+            'logo',
+        ]);
+    }
 
+    /**
+     * Summary of updateCenterLogo
+     * @param mixed $data
+     * @return \App\Models\User
+     */
+    public function updateCenterLogo($data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $center->update([
+                'logo' => FileStorage::fileExists($data['logo'] ?? null, $center->logo, 'Center', 'img') ?? $center->logo,
+            ]);
+            return $center;
+        } catch (\Exception $e) {
+            Log::error('Error updating center logo', [ 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل شعار المركز');
+        }
+    }
     public function getCenterSubservicesByService($service_id)
     {
         try {

@@ -10,6 +10,7 @@ use App\Http\Requests\Center\UpdateCenterSubsevrice;
 use App\Http\Requests\Center\UpdateCenterPaymentInfoRequest;
 use App\Http\Requests\Center\StoreCenterDocumentsRequest;
 use App\Http\Requests\Center\UpdateCenterLocation;
+use App\Http\Requests\Center\UpdateCenterLogoRequest;
 use App\Models\Center\Center;
 use App\Services\CenterService;
 use Illuminate\Http\Request;
@@ -125,6 +126,24 @@ class CenterController extends Controller
     {
         $loc = $this->centerService->getCenterLocation();
         return $this->success($loc, 'تم الحصول على موقع المركز بنجاح');
+    }
+
+    /**
+     * Return a small set of profile fields for the authenticated center.
+     */
+    public function centerProfileInfo()
+    {
+        $data = $this->centerService->getCenterProfileInfo();
+        return $this->success($data, 'تم الحصول على بيانات الملف الشخصي للمركز بنجاح');
+    }
+
+    /**
+     * Update just the center logo.
+     */
+    public function updateCenterLogo(UpdateCenterLogoRequest $request)
+    {
+        $center = $this->centerService->updateCenterLogo($request->validated());
+        return $this->success($center->only(['logo']), 'تم تحديث شعار المركز بنجاح');
     }
 
     /**

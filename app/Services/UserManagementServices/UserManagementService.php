@@ -11,7 +11,6 @@ use App\Services\Service;
 use App\Services\FileStorage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use App\Models\UserManagement\Provider;
 use App\Services\UserManagementServices\OTPService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;

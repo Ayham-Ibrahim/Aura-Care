@@ -12,6 +12,8 @@ use App\Http\Requests\Center\StoreCenterDocumentsRequest;
 use App\Http\Requests\Center\UpdateCenterLocation;
 use App\Http\Requests\Center\UpdateCenterLogoRequest;
 use App\Models\Center\Center;
+use App\Models\Section;
+use App\Models\Service;
 use App\Services\CenterService;
 use Illuminate\Http\Request;
 
@@ -171,5 +173,23 @@ class CenterController extends Controller
     {
         $data = $this->centerService->getSubservicesHasPoints();
         return $this->success($data, 'تم جلب الخدمات الفرعية المحتوية على نقاط بنجاح');
+    }
+
+    
+
+    /**
+     * Return centers that offer the specified service. Used by
+     * authenticated users during service exploration.
+     */
+    public function getCentersByService(Service $service)
+    {
+        $centers = $this->centerService->getCentersByService($service);
+        return $this->success($centers, 'تم جلب المراكز التي تقدم الخدمة بنجاح');
+    }
+
+    public function getCentersBySection(Section $section)
+    {
+        $centers = $this->centerService->getCentersBySection($section);
+        return $this->success($centers, 'تم جلب المراكز التي تنتمي للقسم بنجاح');
     }
 }

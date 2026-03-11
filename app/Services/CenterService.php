@@ -10,6 +10,7 @@ use App\Services\Center\WorkingHourService;
 // use App\Models\ManageSubservice;
 use App\Models\Subservice;
 use App\Models\ManageSubservice;
+use App\Models\Section;
 use App\Models\Service as ServiceModel;
 use App\Services\FileStorage;
 use Illuminate\Support\Facades\Auth;
@@ -213,7 +214,7 @@ class CenterService extends Service
         return $center->only(['location_h', 'location_v']);
     }
 
-    
+
     public function updateCenterLocation(array $data)
     {
         try {
@@ -224,11 +225,11 @@ class CenterService extends Service
             ]);
             return $center;
         } catch (\Exception $e) {
-            Log::error('Error updating center location', [ 'data' => $data, 'error' => $e->getMessage()]);
+            Log::error('Error updating center location', ['data' => $data, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء تعديل موقع المركز');
         }
     }
-    
+
     /**
      * Fetch core profile information for authenticated center.
      *
@@ -260,7 +261,7 @@ class CenterService extends Service
             ]);
             return $center;
         } catch (\Exception $e) {
-            Log::error('Error updating center logo', [ 'error' => $e->getMessage()]);
+            Log::error('Error updating center logo', ['error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء تعديل شعار المركز');
         }
     }
@@ -292,9 +293,9 @@ class CenterService extends Service
                 'center:id,name,logo',
                 'subservice:id,name,image'
             ])
-            ->select('id','center_id','subservice_id','points','from','to')
-            ->where('activating_points', '=', 1)
-            ->get();
+                ->select('id', 'center_id', 'subservice_id', 'points', 'from', 'to')
+                ->where('activating_points', '=', 1)
+                ->get();
         } catch (\Exception $e) {
             Log::error('Error fetching subservices with points', ['error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب الخدمات الفرعية التي تحتوي على نقاط');
@@ -361,7 +362,7 @@ class CenterService extends Service
             DB::beginTransaction();
             $centerDocument = $center->documents()->updateorcreate([
                 'center_id' => $center->id
-                ],[
+            ], [
                 'id_front' => isset($data['id_front']) ? FileStorage::storeFile($data['id_front'], 'CenterDocuments', 'img') : null,
                 'id_back' => isset($data['id_back']) ? FileStorage::storeFile($data['id_back'], 'CenterDocuments', 'img') : null,
                 'commercial_record' => isset($data['commercial_record']) ? FileStorage::storeFile($data['commercial_record'], 'CenterDocuments', 'img') : null,
@@ -373,6 +374,34 @@ class CenterService extends Service
             DB::rollBack();
             Log::error('Error storing center documents', ['error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء تخزين وثائق المركز');
+        }
+    }
+
+    public function getCentersByService(ServiceModel $service)
+    {
+        try {
+
+            return Center::select('id', 'name', 'logo')
+                ->whereHas('services', function ($q) use ($service) {
+                    $q->where('service_id', $service->id);
+                })
+                ->get();
+        } catch (\Exception $e) {
+            Log::error('Error fetching centers by service', ['service' => $service, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالخدمة');
+        }
+    }
+
+    public function getCentersBySection(Section $section)
+    {
+        try {
+
+            return Center::select('id', 'name', 'logo')
+                ->where('section_id', $section->id)
+                ->get();
+        } catch (\Exception $e) {
+            Log::error('Error fetching centers by section', ['section' => $section, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالقسم');
         }
     }
 }

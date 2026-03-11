@@ -140,6 +140,9 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('sections/basic', [SectionController::class, 'listBasic']);
     Route::get('centers/basic', [CenterController::class, 'listBasicCenters']);
     Route::get('subservices/has-points', [CenterController::class, 'getSubservicesHasPoints']);
+
+    Route::get('centers/service/{service}', [CenterController::class, 'getCentersByService']);
+    Route::get('centers/section/{section}', [CenterController::class, 'getCentersBySection']);
     
 }); 
 

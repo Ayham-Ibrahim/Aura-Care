@@ -84,6 +84,14 @@ class Center extends Model
         return $this->hasOne(CenterDocument::class);
     }
 
+    /**
+     * points associated with the center
+     */
+    public function points()
+    {
+        return $this->hasMany(\App\Models\Point::class);
+    }
+
     public function getWorkingHoursFormattedAttribute()
     {
         $hours = $this->workingHours()->orderBy('day')->get();

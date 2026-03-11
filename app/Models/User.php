@@ -64,4 +64,12 @@ class User extends Authenticatable
     {
         return !is_null($this->phone_verified_at);
     }
+
+    /**
+     * points associated with the user
+     */
+    public function points()
+    {
+        return $this->hasMany(Point::class);
+    }
 }

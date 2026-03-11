@@ -325,7 +325,78 @@ class UserManagementService extends Service
         return ['message' => 'Logged out'];
     }
 
+    /**
+     * Get current authenticated user's location coordinates.
+     *
+     * @return array
+     */
+    public function getUserLocation()
+    {
+        $user = Auth::user();
+        return $user->only(['v_location', 'h_location']);
+    }
 
+    /**
+     * Update v_location and h_location for authenticated user.
+     *
+     * @param array $data
+     * @return \App\Models\User
+     */
+    public function updateUserLocation(array $data)
+    {
+        try {
+            $user = Auth::user();
+            $user->update([
+                'v_location' => $data['v_location'],
+                'h_location' => $data['h_location'],
+            ]);
+            return $user;
+        } catch (\Exception $e) {
+            Log::error('Error updating user location', [ 'data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل موقع المستخدم');
+        }
+    }
+    /**
+     * Retrieve authenticated user's sham_code and sham_image.
+     *
+     * @return array
+     */
+    public function getUserPaymentInfo()
+    {
+        $user = Auth::user();
+        return $user->only(['sham_image', 'sham_code']);
+    }
+
+    /**
+     * Update the user's sham payment info fields.
+     *
+     * @param array $data
+     * @return \App\Models\User
+     */
+    public function updateUserPaymentInfo(array $data)
+    {
+        try {
+            $user = Auth::user();
+            $user->update([
+                'sham_code' => $data['sham_code'] ?? $user->sham_code,
+                'sham_image' => FileStorage::fileExists($data['sham_image'] ?? null, $user->sham_image, 'users', 'img') ?? $user->sham_image,
+            ]);
+            return $user;
+        } catch (\Exception $e) {
+            Log::error('Error updating user payment info', [ 'data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل بيانات الدفع');
+        }
+    }
+    /**
+     * Return all point records associated with authenticated user.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getUserPoints()
+    {
+        $user = Auth::user();
+        return $user->points()->with('center:id,name,logo')->get();
+    }
 
 
     /**

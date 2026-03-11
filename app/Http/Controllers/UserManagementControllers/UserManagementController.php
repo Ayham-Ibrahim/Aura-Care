@@ -14,6 +14,8 @@ use App\Http\Requests\UserManagementRequests\ForgotPasswordRequest;
 use App\Http\Requests\UserManagementRequests\ConfirmRegistrationRequest;
 use App\Http\Requests\UserManagementRequests\ConfirmForgotPasswordRequest;
 use App\Http\Requests\UserManagementRequests\UpdateUserProfileRequest;
+use App\Http\Requests\UserManagementRequests\UpdateUserLocationRequest;
+use App\Http\Requests\UserManagementRequests\UpdateUserPaymentInfoRequest;
 use Illuminate\Support\Facades\Auth;
 
 class UserManagementController extends Controller
@@ -264,6 +266,51 @@ class UserManagementController extends Controller
     {
         $updated = $this->service->updateProfile( $request->validated());
         return $this->success($updated, 'تم تحديث بياناتك بنجاح');
+    }
+
+    /**
+     * Fetch the authenticated user's location coordinates.
+     */
+    public function getUserLocation()
+    {
+        $loc = $this->service->getUserLocation();
+        return $this->success($loc, 'تم جلب موقع المستخدم بنجاح');
+    }
+
+    /**
+     * Update authenticated user's location.
+     */
+    public function updateUserLocation(UpdateUserLocationRequest $request)
+    {
+        $user = $this->service->updateUserLocation($request->validated());
+        return $this->success($user->only(['v_location','h_location']), 'تم تحديث موقع المستخدم بنجاح');
+    }
+
+    /**
+     * Get authenticated user's sham payment info.
+     */
+    public function getUserPaymentInfo()
+    {
+        $data = $this->service->getUserPaymentInfo();
+        return $this->success($data, 'تم جلب معلومات الدفع بنجاح');
+    }
+
+    /**
+     * Update authenticated user's sham payment info.
+     */
+    public function updateUserPaymentInfo(UpdateUserPaymentInfoRequest $request)
+    {
+        $user = $this->service->updateUserPaymentInfo($request->validated());
+        return $this->success($user->only(['sham_image','sham_code']), 'تم تحديث معلومات الدفع بنجاح');
+    }
+
+    /**
+     * Get all point entries for the current user.
+     */
+    public function getUserPoints()
+    {
+        $points = $this->service->getUserPoints();
+        return $this->success($points, 'تم جلب جميع نقاط المستخدم بنجاح');
     }
 
     /**

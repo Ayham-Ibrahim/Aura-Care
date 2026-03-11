@@ -105,6 +105,14 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
 Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [UserManagementController::class, 'profile']);
     Route::put('/profile', [UserManagementController::class, 'updateProfile']);
+    // location endpoints
+    Route::get('/location', [UserManagementController::class, 'getUserLocation']);
+    Route::patch('/location', [UserManagementController::class, 'updateUserLocation']);
+    // payment info
+    Route::get('/payment-info', [UserManagementController::class, 'getUserPaymentInfo']);
+    Route::patch('/payment-info', [UserManagementController::class, 'updateUserPaymentInfo']);
+    // user points log
+    Route::get('/points', [UserManagementController::class, 'getUserPoints']);
 });
 
 

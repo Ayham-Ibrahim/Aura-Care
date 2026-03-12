@@ -64,4 +64,21 @@ class User extends Authenticatable
     {
         return !is_null($this->phone_verified_at);
     }
+
+    /**
+     * points associated with the user
+     */
+    public function points()
+    {
+        return $this->hasMany(Point::class);
+    }
+
+    /**
+     * centers marked as favorite by this user
+     */
+    public function favoriteCenters()
+    {
+        return $this->belongsToMany(\App\Models\Center\Center::class, 'center_user')
+                    ->withTimestamps();
+    }
 }

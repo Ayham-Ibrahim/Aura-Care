@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Center\Center;
+use App\Models\Center\Work;
 use Illuminate\Database\Eloquent\Model;
 
 class Service extends Model
@@ -27,5 +28,10 @@ class Service extends Model
     public function centers()
     {
         return $this->belongsToMany(Center::class, 'center_service')->withTimestamps();
+    }
+    
+    public function works()
+    {
+        return $this->hasMany(Work::class);
     }
 } 

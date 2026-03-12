@@ -6,11 +6,14 @@ use App\Http\Controllers\SubserviceController;
 use App\Http\Controllers\AdController;
 use App\Http\Controllers\BroadcastNotificationController;
 use App\Http\Controllers\Center\WorkController;
+use App\Http\Controllers\Center\WorkingHourController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserManagementControllers\CenterController;
+use App\Http\Controllers\UserManagementControllers\UserController;
 use App\Http\Controllers\UserManagementControllers\UserManagementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Attribute\AsController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -97,14 +100,51 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::patch('reservations/{reservation}/status', [ReservationController::class, 'updateStatus']);
 });
 
-// ---------------------------
-//  User Profile 
-// ---------------------------
+
 
 Route::prefix('user')->middleware('auth:sanctum')->group(function () {
+    // ---------------------------
+    //  User Profile 
+    // ---------------------------
+
     Route::get('/profile', [UserManagementController::class, 'profile']);
     Route::put('/profile', [UserManagementController::class, 'updateProfile']);
-});
+    // location endpoints
+    Route::get('/location', [UserManagementController::class, 'getUserLocation']);
+    Route::patch('/location', [UserManagementController::class, 'updateUserLocation']);
+    // payment info
+    Route::get('/payment-info', [UserManagementController::class, 'getUserPaymentInfo']);
+    Route::patch('/payment-info', [UserManagementController::class, 'updateUserPaymentInfo']);
+    // user points log
+    Route::get('/points', [UserManagementController::class, 'getUserPoints']);
+
+    // ---------------------------
+    //  User favorite 
+    // ---------------------------
+
+    // favorite centers (list, remove)
+    Route::get('/favorite-centers', [UserController::class, 'favoriteCenters']);
+    Route::delete('/favorite-centers/{center}', [UserController::class, 'removeFavoriteCenter']);
+    // detailed center info for user
+    Route::get('/center/{center}', [UserController::class, 'centerDetails']);
+        // filter subservices or works by service for a specific center
+    Route::get('centers/{center}/subservices/service/{service}', [UserController::class, 'getSubservicesForUser']);
+    Route::get('centers/{center}/works/service/{service}', [UserController::class, 'getWorksByServiceForUser']);
+    Route::get('works/{work}', [WorkController::class, 'getWorkById']);
+
+
+
+    Route::get('services/by-section/{section}', [ServiceController::class, 'getServicesBySection']);
+    Route::get('ads', [AdController::class, 'index']);
+
+    Route::get('sections/basic', [SectionController::class, 'listBasic']);
+    Route::get('centers/basic', [CenterController::class, 'listBasicCenters']);
+    Route::get('subservices/has-points', [CenterController::class, 'getSubservicesHasPoints']);
+
+    Route::get('centers/service/{service}', [CenterController::class, 'getCentersByService']);
+    Route::get('centers/section/{section}', [CenterController::class, 'getCentersBySection']);
+    
+}); 
 
 
 // ---------------------------
@@ -131,4 +171,22 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     Route::patch('reservations/{reservation}/complete', [ReservationController::class, 'reservationCompleted']);
     Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'cancelReservation']);
     Route::get('reservations/{reservation}/user', [ReservationController::class, 'getReservationUserInfo']);
+
+    // Center working hours (24/7 default, editable by center)
+    Route::get('working-hours', [WorkingHourController::class, 'index']);
+    Route::put('working-hours', [WorkingHourController::class, 'update']);
+    Route::post('working-hours/reset', [WorkingHourController::class, 'resetToDefault']);
+
+    // Center document uploads for verification
+    Route::post('documents', [CenterController::class, 'uploadDocuments']);
+
+    // Center profile and location
+    Route::get('profile-info', [CenterController::class, 'centerProfileInfo']);
+    Route::post('logo', [CenterController::class, 'updateCenterLogo']);
+    Route::get('location', [CenterController::class, 'getCenterLocation']);
+    Route::patch('location', [CenterController::class, 'updateCenterLocation']);
+
+    // additional endpoints for sham payment info
+    Route::get('payment-info', [CenterController::class, 'getPaymentInfCenter']);
+    Route::patch('payment-info', [CenterController::class, 'updatePaymentInfCenter']);
 });

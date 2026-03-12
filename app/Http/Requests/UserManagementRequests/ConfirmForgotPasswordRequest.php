@@ -24,7 +24,7 @@ class ConfirmForgotPasswordRequest extends FormRequest
         return [
             'phone' => 'required|string',
             'otp_code' => 'required|string|size:4',
-            'type' => 'required|in:user,provider,store_manager,driver'
+            'type' => 'required|in:user,center'
         ];
     }
 
@@ -42,7 +42,7 @@ class ConfirmForgotPasswordRequest extends FormRequest
             'otp_code.string' => 'رمز التحقق يجب أن يكون نصاً',
             'otp_code.size' => 'رمز التحقق يجب أن يكون مكوناً من 4 أرقام',
             'type.required' => 'نوع الحساب مطلوب',
-            'type.in' => 'نوع الحساب يجب أن يكون: user, provider, store_manager,driver'
+            'type.in' => 'نوع الحساب يجب أن يكون: user, center'
         ];      
     }
 

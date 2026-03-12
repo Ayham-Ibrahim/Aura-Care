@@ -11,7 +11,6 @@ use App\Services\Service;
 use App\Services\FileStorage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use App\Models\UserManagement\Provider;
 use App\Services\UserManagementServices\OTPService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -326,7 +325,78 @@ class UserManagementService extends Service
         return ['message' => 'Logged out'];
     }
 
+    /**
+     * Get current authenticated user's location coordinates.
+     *
+     * @return array
+     */
+    public function getUserLocation()
+    {
+        $user = Auth::user();
+        return $user->only(['v_location', 'h_location']);
+    }
 
+    /**
+     * Update v_location and h_location for authenticated user.
+     *
+     * @param array $data
+     * @return \App\Models\User
+     */
+    public function updateUserLocation(array $data)
+    {
+        try {
+            $user = Auth::user();
+            $user->update([
+                'v_location' => $data['v_location'],
+                'h_location' => $data['h_location'],
+            ]);
+            return $user;
+        } catch (\Exception $e) {
+            Log::error('Error updating user location', [ 'data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل موقع المستخدم');
+        }
+    }
+    /**
+     * Retrieve authenticated user's sham_code and sham_image.
+     *
+     * @return array
+     */
+    public function getUserPaymentInfo()
+    {
+        $user = Auth::user();
+        return $user->only(['sham_image', 'sham_code']);
+    }
+
+    /**
+     * Update the user's sham payment info fields.
+     *
+     * @param array $data
+     * @return \App\Models\User
+     */
+    public function updateUserPaymentInfo(array $data)
+    {
+        try {
+            $user = Auth::user();
+            $user->update([
+                'sham_code' => $data['sham_code'] ?? $user->sham_code,
+                'sham_image' => FileStorage::fileExists($data['sham_image'] ?? null, $user->sham_image, 'users', 'img') ?? $user->sham_image,
+            ]);
+            return $user;
+        } catch (\Exception $e) {
+            Log::error('Error updating user payment info', [ 'data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل بيانات الدفع');
+        }
+    }
+    /**
+     * Return all point records associated with authenticated user.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getUserPoints()
+    {
+        $user = Auth::user();
+        return $user->points()->with('center:id,name,logo')->get();
+    }
 
 
     /**
@@ -510,50 +580,87 @@ class UserManagementService extends Service
         }
     }
 
-    public function updateProfile(array $data)
+    // public function updateProfile(array $data)
+    // {
+    //     try {
+    //         /**
+    //          * @var User $user
+    //          */
+    //         $user = Auth::user();
+
+    //         if (!empty($data['password'])) {
+    //             $data['password'] = Hash::make($data['password']);
+    //         }
+
+    //         $user->update([
+    //             'name' => $data['name'] ?? $user->name,
+    //             'phone' => $data['phone'] ?? $user->phone,
+    //             'password' => $data['password'] ?? $user->password,
+    //             'v_location' => $data['v_location'] ?? $user->v_location,
+    //             'h_location' => $data['h_location'] ?? $user->h_location,
+    //             'gender' => $data['gender'] ?? $user->gender,
+    //             'age' => $data['age'] ?? $user->age,
+    //             'avatar' => FileStorage::fileExists(
+    //                 $data['avatar'] ?? null,
+    //                 $user->avatar,
+    //                 'User',
+    //                 'img'
+    //             ) ?? $user->avatar,
+    //             'sham_code' => $data['sham_code'] ?? $user->sham_code,
+    //             'sham_image'=> FileStorage::fileExists(
+    //                 $data['sham_image'] ?? null,
+    //                 $user->sham_image,
+    //                 'User',
+    //                 'img'
+    //             ) ?? $user->sham_image,
+
+    //         ]);
+
+    //         return $user;
+    //     } catch (\Throwable $e) {
+    //         $this->throwExceptionJson(
+    //             'حدث خطأ أثناء تحديث بياناتك',
+    //             500,
+    //             $e->getMessage()
+    //         );
+    //     }
+    // }
+
+    /**
+     * Return only the basic user profile fields.
+     *
+     * @return array
+     */
+    public function getBasicProfile()
     {
-        try {
-            /**
-             * @var User $user
-             */
+        $user = Auth::user();
+        return $user->only(['avatar', 'name', 'phone']);
+    }
+
+    /**
+     * Update only the basic profile fields (avatar/name/phone) and return them.
+     *
+     * @param array $data
+     * @return array
+     */
+    public function updateBasicProfile(array $data)
+    {
+        try{
             $user = Auth::user();
-
-            if (!empty($data['password'])) {
-                $data['password'] = Hash::make($data['password']);
-            }
-            // return $data['gender'];
-
             $user->update([
                 'name' => $data['name'] ?? $user->name,
                 'phone' => $data['phone'] ?? $user->phone,
-                'password' => $data['password'] ?? $user->password,
-                'v_location' => $data['v_location'] ?? $user->v_location,
-                'h_location' => $data['h_location'] ?? $user->h_location,
-                'gender' => $data['gender'] ?? $user->gender,
-                'age' => $data['age'] ?? $user->age,
                 'avatar' => FileStorage::fileExists(
                     $data['avatar'] ?? null,
                     $user->avatar,
-                    'User',
+                    'users',
                     'img'
                 ) ?? $user->avatar,
-                'sham_code' => $data['sham_code'] ?? $user->sham_code,
-                'sham_image'=> FileStorage::fileExists(
-                    $data['sham_image'] ?? null,
-                    $user->sham_image,
-                    'User',
-                    'img'
-                ) ?? $user->sham_image,
-
             ]);
-
-            return $user;
-        } catch (\Throwable $e) {
-            $this->throwExceptionJson(
-                'حدث خطأ أثناء تحديث بياناتك',
-                500,
-                $e->getMessage()
-            );
+            return $user->only(['avatar', 'name', 'phone']);
+        } catch (\Exception $e) {
+            Log::error('Error updating basic profile', [ 'data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تحديث بيانات الملف الشخصي الأساسية');
         }
     }
 

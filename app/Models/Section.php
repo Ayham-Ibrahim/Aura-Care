@@ -12,6 +12,7 @@ class Section extends Model
     protected $fillable = [
         'name',
         'image',
+        'profit_percentage',
     ];
 
     public function services()

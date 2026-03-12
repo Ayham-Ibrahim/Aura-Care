@@ -5,9 +5,12 @@ namespace App\Services;
 use App\Models\Center\Center;
 use App\Models\Center\Work;
 use App\Models\Center\WorkFile;
+use App\Models\Center\CenterDocument;
+use App\Services\Center\WorkingHourService;
 // use App\Models\ManageSubservice;
 use App\Models\Subservice;
 use App\Models\ManageSubservice;
+use App\Models\Section;
 use App\Models\Service as ServiceModel;
 use App\Services\FileStorage;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +20,13 @@ use Illuminate\Support\Facades\Log;
 
 class CenterService extends Service
 {
+    protected $workingHourService;
+
+    public function __construct(WorkingHourService $workingHourService)
+    {
+        $this->workingHourService = $workingHourService;
+    }
+
     public function getAllCenters($perPage = 10)
     {
         return Center::select(
@@ -58,6 +68,7 @@ class CenterService extends Service
             if (!empty($data['services']) && is_array($data['services'])) {
                 $center->services()->sync($data['services']);
 
+                // also attach all subservices under those services with default inactive status
                 $subServices = Subservice::whereIn('service_id', $data['services'])->pluck('id')->toArray();
                 ManageSubservice::insert(
                     array_map(function ($subServiceId) use ($center) {
@@ -68,7 +79,12 @@ class CenterService extends Service
                     }, $subServices)
                 );
             }
+
+            // creating a center we need default working hours (24/7)
+            $this->workingHourService->setDefaultForCenter($center);
+
             DB::commit();
+
 
             return $center;
         } catch (\Exception $e) {
@@ -158,6 +174,133 @@ class CenterService extends Service
         }
     }
 
+    /**
+     * Retrieve payment information (sham code and image) for a given center.
+     *
+     * @param \App\Models\Center\Center $center
+     * @return array
+     */
+    public function getPaymentInfCenter()
+    {
+        $center = Auth::guard('center')->user();
+        // simply return the two columns; could be null if not set
+        return $center->only(['sham_image', 'sham_code']);
+    }
+
+
+    public function updatePaymentInfCenter(array $data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $center->update([
+                'sham_code' => $data['sham_code'] ?? $center->sham_code,
+                'sham_image' => FileStorage::fileExists($data['sham_image'] ?? null, $center->sham_image, 'Center', 'img') ?? $center->sham_image,
+            ]);
+            return $center->only(['sham_image', 'sham_code']);
+        } catch (\Exception $e) {
+            Log::error('Error updating payment info for center', ['center_id' => $center->id, 'data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل بيانات الدفع للمركز');
+        }
+    }
+
+    /**
+     * Get current center location.
+     *
+     * @return array
+     */
+    public function getCenterLocation()
+    {
+        $center = Auth::guard('center')->user();
+        return $center->only(['location_h', 'location_v']);
+    }
+
+
+    public function updateCenterLocation(array $data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $center->update([
+                'location_h' => $data['location_h'],
+                'location_v' => $data['location_v'],
+            ]);
+            return $center;
+        } catch (\Exception $e) {
+            Log::error('Error updating center location', ['data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل موقع المركز');
+        }
+    }
+
+    /**
+     * Fetch core profile information for authenticated center.
+     *
+     * @return array
+     */
+    public function getCenterProfileInfo()
+    {
+        $center = Auth::guard('center')->user();
+        return $center->only([
+            'verification_status',
+            'rating',
+            'phone',
+            'name',
+            'logo',
+        ]);
+    }
+
+    /**
+     * Summary of updateCenterLogo
+     * @param mixed $data
+     * @return \App\Models\User
+     */
+    public function updateCenterLogo($data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $center->update([
+                'logo' => FileStorage::fileExists($data['logo'] ?? null, $center->logo, 'Center', 'img') ?? $center->logo,
+            ]);
+            return $center;
+        } catch (\Exception $e) {
+            Log::error('Error updating center logo', ['error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل شعار المركز');
+        }
+    }
+
+    /**
+     * Return a simple listing of all centers with just id, name and logo.
+     * No pagination or other extraneous columns. This complements
+     * getAllCenters which is used by the main `index` action.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function listCentersBasic()
+    {
+        return Center::select('id', 'name', 'logo')
+            ->get();
+    }
+
+    /**
+     * Fetch all managed subservices that have a points value defined.
+     * Each record includes the points/from/to fields along with the
+     * related center (id,name,logo) and subservice (id,name,image).
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getSubservicesHasPoints()
+    {
+        try {
+            return ManageSubservice::with([
+                'center:id,name,logo',
+                'subservice:id,name,image'
+            ])
+                ->select('id', 'center_id', 'subservice_id', 'points', 'from', 'to')
+                ->where('activating_points', '=', 1)
+                ->get();
+        } catch (\Exception $e) {
+            Log::error('Error fetching subservices with points', ['error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب الخدمات الفرعية التي تحتوي على نقاط');
+        }
+    }
     public function getCenterSubservicesByService($service_id)
     {
         try {
@@ -209,6 +352,56 @@ class CenterService extends Service
         } catch (\Exception $e) {
             Log::error('Error fetching subservice by id for center', ['center_id' => $center->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطاء ما اثناء جلب الخدمة الخاصة بالمركز');
+        }
+    }
+
+    public function storeCenterDocuments($data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            DB::beginTransaction();
+            $centerDocument = $center->documents()->updateorcreate([
+                'center_id' => $center->id
+            ], [
+                'id_front' => isset($data['id_front']) ? FileStorage::storeFile($data['id_front'], 'CenterDocuments', 'img') : null,
+                'id_back' => isset($data['id_back']) ? FileStorage::storeFile($data['id_back'], 'CenterDocuments', 'img') : null,
+                'commercial_record' => isset($data['commercial_record']) ? FileStorage::storeFile($data['commercial_record'], 'CenterDocuments', 'img') : null,
+            ]);
+            $center->update(['verification_status' => 'pending']);
+            DB::commit();
+            return $centerDocument;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error storing center documents', ['error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تخزين وثائق المركز');
+        }
+    }
+
+    public function getCentersByService(ServiceModel $service)
+    {
+        try {
+
+            return Center::select('id', 'name', 'logo')
+                ->whereHas('services', function ($q) use ($service) {
+                    $q->where('service_id', $service->id);
+                })
+                ->get();
+        } catch (\Exception $e) {
+            Log::error('Error fetching centers by service', ['service' => $service, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالخدمة');
+        }
+    }
+
+    public function getCentersBySection(Section $section)
+    {
+        try {
+
+            return Center::select('id', 'name', 'logo')
+                ->where('section_id', $section->id)
+                ->get();
+        } catch (\Exception $e) {
+            Log::error('Error fetching centers by section', ['section' => $section, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالقسم');
         }
     }
 }

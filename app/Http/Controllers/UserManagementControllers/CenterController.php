@@ -7,7 +7,13 @@ use App\Http\Requests\Center\StoreCenterRequest;
 use App\Http\Requests\Center\StoreWorkRequest;
 use App\Http\Requests\Center\UpdateCenterRequest;
 use App\Http\Requests\Center\UpdateCenterSubsevrice;
+use App\Http\Requests\Center\UpdateCenterPaymentInfoRequest;
+use App\Http\Requests\Center\StoreCenterDocumentsRequest;
+use App\Http\Requests\Center\UpdateCenterLocation;
+use App\Http\Requests\Center\UpdateCenterLogoRequest;
 use App\Models\Center\Center;
+use App\Models\Section;
+use App\Models\Service;
 use App\Services\CenterService;
 use Illuminate\Http\Request;
 
@@ -86,5 +92,104 @@ class CenterController extends Controller
             return $this->notFoundResponse('الخدمة الفرعية غير موجودة');
         }
         return $this->success($subservices, 'تم الحصول على الخدمات الفرعية بنجاح');
+    }
+
+    /**
+     * Return payment information (sham code/image) for a center.
+     */
+    public function getPaymentInfCenter()
+    {
+        $data = $this->centerService->getPaymentInfCenter();
+        return $this->success($data, 'تم الحصول على بيانات الدفع بنجاح');
+    }
+
+    /**
+     * Update sham code/image for a center.
+     */
+    public function updatePaymentInfCenter(UpdateCenterPaymentInfoRequest $request)
+    {
+        $data = $this->centerService->updatePaymentInfCenter($request->validated());
+        return $this->success($data, 'تم تحديث بيانات الدفع بنجاح');
+    }
+
+    /**
+     * Store or update the three required images and mark verification pending.
+     */
+    public function uploadDocuments(StoreCenterDocumentsRequest $request)
+    {
+        $docs = $this->centerService->storeCenterDocuments($request->validated());
+        return $this->success($docs, 'تم رفع الوثائق بنجاح');
+    }
+
+    /**
+     * Get the current authenticated center's geographic location.
+     */
+    public function getCenterLocation()
+    {
+        $loc = $this->centerService->getCenterLocation();
+        return $this->success($loc, 'تم الحصول على موقع المركز بنجاح');
+    }
+
+    /**
+     * Return a small set of profile fields for the authenticated center.
+     */
+    public function centerProfileInfo()
+    {
+        $data = $this->centerService->getCenterProfileInfo();
+        return $this->success($data, 'تم الحصول على بيانات الملف الشخصي للمركز بنجاح');
+    }
+
+    /**
+     * Update just the center logo.
+     */
+    public function updateCenterLogo(UpdateCenterLogoRequest $request)
+    {
+        $center = $this->centerService->updateCenterLogo($request->validated());
+        return $this->success($center->only(['logo']), 'تم تحديث شعار المركز بنجاح');
+    }
+
+    /**
+     * Update the authenticated center's coordinates.
+     */
+    public function updateCenterLocation(UpdateCenterLocation $request)
+    {
+        $center = $this->centerService->updateCenterLocation($request->validated());
+        return $this->success($center->only(['location_h','location_v']), 'تم تحديث موقع المركز بنجاح');
+    }
+
+    /**
+     * Administrator helper – simple center listing.
+     */
+    public function listBasicCenters()
+    {
+        $centers = $this->centerService->listCentersBasic();
+        return $this->success($centers, 'تم جلب قائمة المراكز الأساسية بنجاح');
+    }
+
+    /**
+     * Administrator helper – all managed subservices that have points.
+     */
+    public function getSubservicesHasPoints()
+    {
+        $data = $this->centerService->getSubservicesHasPoints();
+        return $this->success($data, 'تم جلب الخدمات الفرعية المحتوية على نقاط بنجاح');
+    }
+
+    
+
+    /**
+     * Return centers that offer the specified service. Used by
+     * authenticated users during service exploration.
+     */
+    public function getCentersByService(Service $service)
+    {
+        $centers = $this->centerService->getCentersByService($service);
+        return $this->success($centers, 'تم جلب المراكز التي تقدم الخدمة بنجاح');
+    }
+
+    public function getCentersBySection(Section $section)
+    {
+        $centers = $this->centerService->getCentersBySection($section);
+        return $this->success($centers, 'تم جلب المراكز التي تنتمي للقسم بنجاح');
     }
 }

@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             ServicesSeeder::class,
             SubservicesSeeder::class,
             CentersSeeder::class,
+            CenterWorkingHoursSeeder::class,
             CenterWorkSeeder::class,
             ReservationSeeder::class,
         ]);

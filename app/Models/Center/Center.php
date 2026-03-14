@@ -7,6 +7,7 @@ use App\Models\Section;
 use App\Models\Service;
 use App\Models\Subservice;
 use App\Models\Center\WorkingHour;
+use App\Models\Offer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
@@ -98,7 +99,12 @@ class Center extends Model
     public function favoredByUsers()
     {
         return $this->belongsToMany(\App\Models\User::class, 'center_user')
-                    ->withTimestamps();
+            ->withTimestamps();
+    }
+
+    public function offers()
+    {
+        return $this->hasMany(Offer::class);
     }
 
     public function getWorkingHoursFormattedAttribute()

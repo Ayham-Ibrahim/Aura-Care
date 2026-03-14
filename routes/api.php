@@ -13,6 +13,7 @@ use App\Http\Controllers\UserManagementControllers\UserController;
 use App\Http\Controllers\UserManagementControllers\UserManagementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OfferController;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 
 // Route::get('/user', function (Request $request) {
@@ -117,7 +118,6 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::patch('/payment-info', [UserManagementController::class, 'updateUserPaymentInfo']);
     // user points log
     Route::get('/points', [UserManagementController::class, 'getUserPoints']);
-
     // ---------------------------
     //  User favorite 
     // ---------------------------
@@ -127,7 +127,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::delete('/favorite-centers/{center}', [UserController::class, 'removeFavoriteCenter']);
     // detailed center info for user
     Route::get('/center/{center}', [UserController::class, 'centerDetails']);
-        // filter subservices or works by service for a specific center
+    // filter subservices or works by service for a specific center
     Route::get('centers/{center}/subservices/service/{service}', [UserController::class, 'getSubservicesForUser']);
     Route::get('centers/{center}/works/service/{service}', [UserController::class, 'getWorksByServiceForUser']);
     Route::get('works/{work}', [WorkController::class, 'getWorkById']);
@@ -143,8 +143,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
 
     Route::get('centers/service/{service}', [CenterController::class, 'getCentersByService']);
     Route::get('centers/section/{section}', [CenterController::class, 'getCentersBySection']);
-    
-}); 
+});
 
 
 // ---------------------------
@@ -189,4 +188,10 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     // additional endpoints for sham payment info
     Route::get('payment-info', [CenterController::class, 'getPaymentInfCenter']);
     Route::patch('payment-info', [CenterController::class, 'updatePaymentInfCenter']);
+
+    // public or authenticated listing of offers by center
+    Route::get('offers', [OfferController::class, 'index']);
+    Route::post('offers', [OfferController::class, 'storeOffer']);
+    Route::delete('offers/{offer}', [OfferController::class, 'destroyOffer']);
+    Route::get('offers/active-subservices', [OfferController::class, 'getActiveSubservice']);
 });

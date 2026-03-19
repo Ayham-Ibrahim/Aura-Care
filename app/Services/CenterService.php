@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
+use function Symfony\Component\Clock\now;
+
 class CenterService extends Service
 {
     protected $workingHourService;
@@ -46,6 +48,102 @@ class CenterService extends Service
         )
             // ->with('section:id,name', 'services:id,name')
             ->paginate($perPage);
+    }
+
+    public function getPendingCenters($perPage = 10)
+    {
+        try {
+            $centers = Center::select(
+                'id',
+                'name',
+                'logo',
+                'phone',
+                'owner_name',
+                'owner_number',
+            )
+                ->where('verification_status', 'pending')
+                ->with(['documents' => function ($q) {
+                    $q->select('center_id', 'updated_at');
+                }])
+                ->paginate($perPage);
+
+            // return $centers;
+            return $centers->through(function ($center) {
+            return [
+                'id' => $center->id,
+                'name' => $center->name,
+                'logo' => $center->logo,
+                'phone' => $center->phone,
+                'owner_name' => $center->owner_name,
+                'owner_number' => $center->owner_number,
+                'request_date' => ($center->documents->updated_at)->format('Y-m-d') ?? null,
+            ];
+        });
+        } catch (\Exception $e) {
+            Log::error('Error fetching pending centers', ['error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز المعلقة');
+        }
+    }
+
+    public function getCenterByID(Center $center)
+    {
+        try {
+            $center->load('section:id,name,image', 'services:id,name');
+            return array_merge(
+                $center->only([
+                    'section_id',
+                    'name',
+                    'logo',
+                    'location_h',
+                    'location_v',
+                    'phone',
+                    'owner_name',
+                    'owner_number',
+                    'rating',
+                    'verification_status',
+                ]),
+                [
+                    'section' => $center->section,
+                    'services' => $center->services->map(function ($service) {
+                        return $service->only(['id', 'name']);
+                    }),
+                ]
+            );
+        } catch (\Exception $e) {
+            Log::error('Error fetching center details', ['center_id' => $center->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب بيانات المركز');
+        }
+    }
+
+    public function getCenterDocuments(Center $center)
+    {
+        try {
+            return $center->documents->only('commercial_record','id_back','id_front','center_id');
+        } catch (\Exception $e) {
+            Log::error('Error fetching center documents', ['center_id' => $center->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب وثائق المركز');
+        }
+    }
+
+    public function acceptCenterDocuments(Center $center)
+    {
+        return $this->updateCenterVerificationStatus($center, 'accepted');
+    }
+
+    public function rejectCenterDocuments(Center $center)
+    {
+        return $this->updateCenterVerificationStatus($center, 'rejected');
+    }
+
+    protected function updateCenterVerificationStatus(Center $center, string $status)
+    {
+        try {
+            $center->update(['verification_status' => $status]);
+            return $center;
+        } catch (\Exception $e) {
+            Log::error('Error updating center verification status', ['center_id' => $center->id, 'status' => $status, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل حالة التحقق للمركز');
+        }
     }
 
     public function createCenter(array $data)

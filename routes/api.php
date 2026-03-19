@@ -91,7 +91,12 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     // Subservices grouped by main service
     Route::get('subservices/by-service', [SubserviceController::class, 'groupedByService']);
 
+    Route::get('centers/pending', [CenterController::class, 'getPendingCenters']);
     Route::apiResource('centers', CenterController::class);
+    Route::get('centers/{center}/details', [CenterController::class, 'getCenterByID']);
+    Route::get('centers/{center}/documents', [CenterController::class, 'getCenterDocuments']);
+    Route::patch('centers/{center}/documents/accept', [CenterController::class, 'acceptCenterDocuments']);
+    Route::patch('centers/{center}/documents/reject', [CenterController::class, 'rejectCenterDocuments']);
     Route::get('centers/{center}/works', [CenterController::class, 'getWorks']);
     // Route::post('centers/{id}/restore', [CenterController::class, 'restore']);
 

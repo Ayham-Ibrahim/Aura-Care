@@ -167,6 +167,51 @@ class CenterController extends Controller
     }
 
     /**
+     * Administrator helper – list centers pending verification.
+     */
+    public function getPendingCenters(Request $request)
+    {
+        $centers = $this->centerService->getPendingCenters($request->per_Page);
+        return $this->paginate($centers, 'تم جلب المراكز المعلقة بنجاح');
+    }
+
+    /**
+     * Administrator helper – get center details with section and services.
+     */
+    public function getCenterByID(Center $center)
+    {
+        $data = $this->centerService->getCenterByID($center);
+        return $this->success($data, 'تم جلب بيانات المركز بنجاح');
+    }
+
+    /**
+     * Administrator helper – get center documents.
+     */
+    public function getCenterDocuments(Center $center)
+    {
+        $documents = $this->centerService->getCenterDocuments($center);
+        return $this->success($documents, 'تم جلب وثائق المركز بنجاح');
+    }
+
+    /**
+     * Administrator helper – accept center documents.
+     */
+    public function acceptCenterDocuments(Center $center)
+    {
+        $center = $this->centerService->acceptCenterDocuments($center);
+        return $this->success($center->only(['id', 'verification_status']), 'تم قبول وثائق المركز');
+    }
+
+    /**
+     * Administrator helper – reject center documents.
+     */
+    public function rejectCenterDocuments(Center $center)
+    {
+        $center = $this->centerService->rejectCenterDocuments($center);
+        return $this->success($center->only(['id', 'verification_status']), 'تم رفض وثائق المركز');
+    }
+
+    /**
      * Administrator helper – all managed subservices that have points.
      */
     public function getSubservicesHasPoints()

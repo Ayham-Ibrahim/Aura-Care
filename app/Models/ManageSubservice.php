@@ -32,4 +32,12 @@ class ManageSubservice extends Model
     {
         return $this->belongsToMany(Reservation::class, 'reservation_manage_subservice');
     }
+
+    /**
+     * Offers that include this managed subservice.
+     */
+    public function offers()
+    {
+        return $this->belongsToMany(Offer::class, 'manage_subservice_offer');
+    }
 }

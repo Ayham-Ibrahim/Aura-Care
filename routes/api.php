@@ -11,6 +11,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserManagementControllers\CenterController;
 use App\Http\Controllers\UserManagementControllers\UserController;
 use App\Http\Controllers\UserManagementControllers\UserManagementController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OfferController;
@@ -148,6 +149,9 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
 
     Route::get('centers/service/{service}', [CenterController::class, 'getCentersByService']);
     Route::get('centers/section/{section}', [CenterController::class, 'getCentersBySection']);
+
+    // Dashboard home page with cached data
+    Route::get('home', [DashboardController::class, 'index']);
 });
 
 

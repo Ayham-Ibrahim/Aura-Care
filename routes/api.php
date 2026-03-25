@@ -131,6 +131,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     // favorite centers (list, remove)
     Route::get('/favorite-centers', [UserController::class, 'favoriteCenters']);
     Route::delete('/favorite-centers/{center}', [UserController::class, 'removeFavoriteCenter']);
+    Route::post('/favorite-centers/{center}/toggle', [UserController::class, 'DACenters']);
     // detailed center info for user
     Route::get('/center/{center}', [UserController::class, 'centerDetails']);
     // filter subservices or works by service for a specific center

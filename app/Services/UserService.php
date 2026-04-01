@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Center\Center;
 use App\Models\Center\Work;
 use App\Models\Subservice;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class UserService extends Service
@@ -31,6 +32,7 @@ class UserService extends Service
             'location_v',
             'location_h',
         ]);
+        $basic['is_favorited'] =  Auth::guard('api')->user()->favoriteCenters()->where('center_id', $center->id)->exists() ?? false;
 
         $basic['working_hours'] = $center->workingHours;
         $basic['services'] = $center->services->makeHidden('pivot');

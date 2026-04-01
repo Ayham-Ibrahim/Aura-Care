@@ -26,9 +26,9 @@ class UserController extends Controller
     {
         $user = Auth::user();
         $centers = $user->favoriteCenters()
-                        ->select('centers.id','rating','name','logo')
-                        ->get()
-                        ->makeHidden('pivot');
+            ->select('centers.id', 'rating', 'name', 'logo')
+            ->get()
+            ->makeHidden('pivot');
         return $this->success($centers, 'تم جلب المراكز المفضلة بنجاح');
     }
 
@@ -42,6 +42,16 @@ class UserController extends Controller
         return $this->success(null, 'تمت إزالة المركز من المفضلة');
     }
 
+    public function DACenters(Center $center)
+    {
+        $user = Auth::user();
+        $user->favoriteCenters()->toggle($center->id);
+        $isFavorited = $user->favoriteCenters()->where('center_id', $center->id)->exists();
+        $message = $isFavorited ? 'تم إضافة المركز إلى المفضلة' : 'تم إزالة المركز من المفضلة';
+
+        return $this->success(null, $message);
+    }
+
     /**
      * Get detailed information about a specific center (for user view).
      * Includes location, working hours, services, and user's own applied services.
@@ -53,7 +63,7 @@ class UserController extends Controller
         return $this->success($data, 'تم جلب بيانات المركز بنجاح');
     }
 
-    
+
 
     /**
      * Administrator endpoint – return only active managed subservices
@@ -71,7 +81,7 @@ class UserController extends Controller
      */
     public function getWorksByServiceForUser($center, $service)
     {
-        $works = $this->userService->getCenterWorks($center,$service);
+        $works = $this->userService->getCenterWorks($center, $service);
         return $this->success($works, 'تم الحصول على أعمال المركز للخدمة المحددة بنجاح');
     }
 }

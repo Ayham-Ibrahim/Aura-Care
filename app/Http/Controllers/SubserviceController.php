@@ -39,10 +39,10 @@ class SubserviceController extends Controller
         return $this->createdResponse($subservice, 'تم انشاء الخدمة الفرعية بنجاح');
     }
 
-    // public function show(Subservice $subservice)
-    // {
-    //     return $this->success($subservice, 'تم جلب الخدمة الفرعية بنجاح');
-    // }
+    public function show(Subservice $subservice)
+    {
+        return $this->success($subservice, 'تم جلب الخدمة الفرعية بنجاح');
+    }
 
     public function update(UpdateSubserviceRequest $request, Subservice $subservice)
     {

@@ -83,11 +83,11 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     // Sections + main services for authenticated users (mobile/web)
 
 
-    Route::apiResource('services', ServiceController::class)->except(['show']);
+    Route::apiResource('services', ServiceController::class);
     Route::post('services/multiple-delete', [ServiceController::class, 'multipleDelete']);
     Route::get('services/by-section/{section}', [ServiceController::class, 'getServicesBySection']);
 
-    Route::apiResource('subservices', SubserviceController::class)->except(['show']);
+    Route::apiResource('subservices', SubserviceController::class);
     Route::post('subservices/multiple-delete', [SubserviceController::class, 'multipleDelete']);
     // Subservices grouped by main service
     Route::get('subservices/by-service', [SubserviceController::class, 'groupedByService']);

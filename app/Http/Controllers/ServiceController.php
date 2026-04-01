@@ -30,10 +30,10 @@ class ServiceController extends Controller
         return $this->createdResponse($service, 'تم انشاء الخدمة بنجاح');
     }
 
-    // public function show(Service $service)
-    // {
-    //     return $this->success($service->load('section'), 'تم جلب الخدمة بنجاح');
-    // }
+    public function show(Service $service)
+    {
+        return $this->success($service, 'تم جلب الخدمة بنجاح');
+    }
 
     public function update(UpdateServiceRequest $request, Service $service)
     {

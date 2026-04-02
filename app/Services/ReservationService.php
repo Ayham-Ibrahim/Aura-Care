@@ -2,7 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\Center\Center;
+use App\Models\ManageSubservice;
+use App\Models\Offer;
 use App\Models\Reservation;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ReservationService extends Service
@@ -10,6 +17,56 @@ class ReservationService extends Service
     public function getAllReservations($perPage = 10)
     {
         return Reservation::with('center:id,name', 'user:id,name')->paginate($perPage);
+    }
+
+    public function createReservation(array $data)
+    {
+
+        // return $data;
+        try {
+            $user_id = Auth::guard('api')->id();
+
+            $totalAmount = 0;
+            $discount_value = 0;
+
+            if (!empty($data['offer'])) {
+                $discount_value = Offer::where('id', $data['offer'])->value('discount_value');
+                $data['subservices'] = Offer::find($data['offer'])->manageSubservices->pluck('id')->toArray();
+            }
+
+
+            if (!empty($data['subservices']) && is_array($data['subservices'])) {
+                $totalAmount += ManageSubservice::whereIn('id', $data['subservices'])
+                    ->sum('price');
+            }
+
+            $totalAmount -= $discount_value;
+
+            DB::beginTransaction();
+
+            $reservation = Reservation::create([
+                'center_id' => $data['center_id'],
+                'user_id' => $user_id,
+                'date' => $data['date'],
+                'total_amount' => $totalAmount,
+            ]);
+
+            if (!empty($data['subservices']) && is_array($data['subservices'])) {
+                $reservation->manageSubservices()->sync(array_unique($data['subservices']));
+            }
+
+            if (!isset($data['offer']) && !empty($data['offer'])) {
+                $reservation->offers()->sync($data['offer']);
+            }
+
+            DB::commit();
+
+            return $reservation;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating reservation', ['payload' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء إنشاء الحجز');
+        }
     }
 
     public function updateReservationStatus(Reservation $reservation, string $status)
@@ -23,6 +80,129 @@ class ReservationService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء تعديل حالة الحجز');
         }
     }
+    public function getSubserviceWithTime(array $data)
+    {
+        $center = Center::with('workingHours')->findOrFail($data['center_id']);
+
+        if (!$center) {
+            $this->throwExceptionJson('المركز غير موجود', 404);
+        }
+        if ($data['offer'] ?? false) {
+            $offer = Offer::with('manageSubservices')->find($data['offer']);
+            if (!$offer || $offer->center_id != $center->id) {
+                $this->throwExceptionJson('العرض غير موجود لنفس المركز', 422);
+            }
+            $data['manage_subservice'] = $offer->manageSubservices->pluck('id')->toArray();
+        }
+
+        $selectedSubservices = ManageSubservice::with('subservice:id,name,image')
+            ->where('center_id', $center->id)
+            ->where('is_active', true)
+            ->whereIn('id', $data['manage_subservice'])
+            ->get();
+
+        if ($selectedSubservices->count() !== count($data['manage_subservice'])) {
+            $this->throwExceptionJson('يوجد خدمة غير موجودة لنفس المركز', 422);
+        }
+
+        $oldAmount = $selectedSubservices->sum('price');
+        if (isset($offer)) {
+            $newAmount = $oldAmount - $offer->discount_value;
+        } else {
+            $newAmount = $oldAmount;
+        }
+
+        try {
+
+            $subservicesData = $selectedSubservices->map(function ($item) {
+                $data = [
+                    'id' => $item->id,
+                    'image' => $item->subservice->image ?? null,
+                    'name' => $item->subservice->name ?? null,
+                    'price' => $item->price,
+                ];
+                if ($item->activating_points &&  Carbon::now()->between(
+
+                    Carbon::parse($item->from),
+                    Carbon::parse($item->to)
+                )) {
+                    $data['points'] = $item->points;
+                } else {
+                    $data['points'] = 0;
+                }
+                return $data;
+            })->values();
+
+
+
+            $now = Carbon::today();
+            $endDate = $now->copy()->addMonth();
+
+            $workingHours = $center->workingHours->filter(function ($entry) {
+                return (bool) $entry->is_active;
+            })->keyBy('day');
+
+            $reservationQuery = Reservation::select('id', 'date')
+                ->where('center_id', $center->id)
+                ->whereBetween('date', [$now->toDateString(), $endDate->toDateString()])
+                ->where('status', '!=', 'cancelled')
+                ->where('status', '!=', 'completed')
+                ->where(function ($query) use ($data) {
+                    // البحث في الخدمات المباشرة
+                    $query->whereHas('manageSubservices', function ($q) use ($data) {
+                        $q->whereIn('manage_subservices.id', $data['manage_subservice']);
+                    });
+
+                    // أو الحجوزات التي تحتوي على عروض تشمل الخدمات المطلوبة
+                    $query->orWhereHas('offers', function ($q) use ($data) {
+                        $q->whereHas('manageSubservices', function ($subQ) use ($data) {
+                            $subQ->whereIn('manage_subservices.id', $data['manage_subservice']);
+                        });
+                    });
+                });
+
+            $reservations = $reservationQuery->get();
+            // return $reservations;
+
+            $booked = [];
+            foreach ($reservations as $reservation) {
+                $dateCarbon = Carbon::parse($reservation->date);
+                $dateKey = $dateCarbon->format('Y-m-d');
+                $hour = $dateCarbon->format('H:00');
+                $booked[$dateKey][] = $hour;
+            }
+
+            $availableTimes = [];
+            for ($date = $now->copy(); $date->lte($endDate); $date->addDay()) {
+                $dayOfWeek = $date->dayOfWeek;
+                if (!isset($workingHours[$dayOfWeek])) {
+                    continue;
+                }
+                $dateKey = $date->toDateString();
+                for ($hour = Carbon::createFromFormat('H:i', substr($workingHours[$dayOfWeek]->open_time, 0, 5)); $hour->lt(Carbon::createFromFormat('H:i', substr($workingHours[$dayOfWeek]->close_time, 0, 5))); $hour->addHour()) {
+                    $hourKey = $hour->format('H:i');
+                    if (isset($booked[$dateKey])) {
+                        if (in_array($hourKey, $booked[$dateKey])) {
+                            continue;
+                        }
+                    }
+                    $availableTimes[$dateKey][] = $hourKey;
+                }
+            }
+            return [
+                'old_amount' => $oldAmount,
+                'new_amount' => $newAmount,
+                'subservices' => $subservicesData,
+                'available_times' => $availableTimes,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error fetching subservice availability', ['payload' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب أوقات الخدمة');
+        }
+    }
+
+
+
     public function centerReservation()
     {
         try {
@@ -60,7 +240,7 @@ class ReservationService extends Service
         $res = $this->updateReservationStatus($reservation, 'completed');
         return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
     }
-    
+
     public function cancelReservation(Reservation $reservation)
     {
         $this->chackCenterAuth($reservation);

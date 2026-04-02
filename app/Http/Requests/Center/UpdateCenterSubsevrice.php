@@ -21,6 +21,7 @@ class UpdateCenterSubsevrice extends FormRequest
      */
     public function rules(): array
     {
+        // TODO: price should be required if is_active is true, and (points,from,to) should be required if activating_points is true
         return [
             'subservice_id' => 'required|exists:subservices,id',
             'price' => 'sometimes|numeric|min:0',

@@ -138,7 +138,9 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('centers/{center}/subservices/service/{service}', [UserController::class, 'getSubservicesForUser']);
     Route::get('centers/{center}/works/service/{service}', [UserController::class, 'getWorksByServiceForUser']);
     Route::get('works/{work}', [WorkController::class, 'getWorkById']);
-
+    
+    Route::post('centers/{center}/subservices/availability', [ReservationController::class, 'getSubserviceWithTime']);
+    Route::post('reservations', [ReservationController::class, 'store']);
 
 
     Route::get('services/by-section/{section}', [ServiceController::class, 'getServicesBySection']);

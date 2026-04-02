@@ -21,8 +21,7 @@ class Reservation extends Model
     ];
 
     protected $casts = [
-        'date' => 'date',
-        'hour' => 'string',
+        'date' => 'datetime',
     ];
 
     public function center()
@@ -38,6 +37,11 @@ class Reservation extends Model
     public function manageSubservices()
     {
         return $this->belongsToMany(ManageSubservice::class, 'reservation_manage_subservice');
+    }
+
+    public function offers()
+    {
+        return $this->belongsToMany(Offer::class, 'reservation_offer');
     }
 
     /**

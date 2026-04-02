@@ -43,9 +43,8 @@ class UserService extends Service
         return $basic;
     }
 
-    
 
-    
+
     /**
      * Get all subservices associated with a specific center and service
      * where the pivot row is active. This is a more restrictive query
@@ -60,11 +59,19 @@ class UserService extends Service
     {
         try {
             $subservices = Subservice::where('service_id', $serviceId)
-                ->whereHas('manageSubservices', function ($q) use ($centerId) {
+                ->withWhereHas('manageSubservices', function ($q) use ($centerId) {
                     $q->where('center_id', $centerId)
-                      ->where('is_active', true);
+                        ->where('is_active', true);
                 })
-                ->get();
+                ->get()
+                ->map(function ($sub) {
+                    $manage = $sub->manageSubservices->first(); // خذ أول عنصر فقط
+                    return [
+                        'id' => $manage ? $manage->id : null,
+                        'name' => $sub->name,
+                        'image' => $sub->image,
+                    ];
+                });
 
             return $subservices;
         } catch (\Exception $e) {

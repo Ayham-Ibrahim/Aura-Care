@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Reservation\GetSubserviceWithTime;
 use App\Http\Requests\Reservation\StoreReservationRequest;
 use App\Http\Requests\Reservation\UpdateReservationRequest;
 use App\Http\Requests\Reservation\UpdateReservationStatusRequest;
@@ -23,6 +24,14 @@ class ReservationController extends Controller
         $reservations = $this->reservationService->getAllReservations($request->perPage);
         return $this->paginate($reservations, 'تم الحصول على جميع الحجوزات بنجاح');
     }
+
+
+    public function store(StoreReservationRequest $request)
+    {
+        $reservation = $this->reservationService->createReservation($request->validated());
+        return $this->success($reservation, 'تم إنشاء الحجز بنجاح');
+    }
+
     // for customers: only change status (e.g., cancel)
     public function updateStatus(UpdateReservationStatusRequest $request, Reservation $reservation)
     {
@@ -34,6 +43,12 @@ class ReservationController extends Controller
     {
         $reservation = $this->reservationService->centerReservation();
         return $this->success($reservation,'تم الحصول على حجوزات المركز بنجاح ');
+    }
+
+    public function getSubserviceWithTime(GetSubserviceWithTime $request)
+    {
+        $response = $this->reservationService->getSubserviceWithTime($request->validated());
+        return $this->success($response, 'تم جلب بيانات الخدمات والأوقات المتاحة بنجاح');
     }
 
     public function getReservationById(Reservation $reservation)

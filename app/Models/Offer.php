@@ -37,4 +37,10 @@ class Offer extends Model
     {
         return $this->manageSubservices->subservice ?? null;
     }
+
+    public function reservations()
+    {
+        return $this->belongsToMany(Reservation::class, 'reservation_offer');
+    }
 }
+

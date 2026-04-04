@@ -10,4 +10,7 @@ return [
     'api_url' => env('TELEGRAM_API_URL', 'https://gatewayapi.telegram.org/'),
     'chat_id' => env('TELEGRAM_CHAT_ID'),
 
+    'reservation' => [
+        'deposit_percentage' => env('RESERVATION_DEPOSIT_PERCENTAGE', 0.1),
+    ],
 ];

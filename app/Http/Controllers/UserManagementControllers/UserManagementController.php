@@ -160,6 +160,7 @@ class UserManagementController extends Controller
   public function refreshToken(Request $request)
 {
     $refreshToken = $request->bearerToken();
+    return $refreshToken;
     if (!$refreshToken) {
         $refreshToken = $request->input('refresh_token');
     }

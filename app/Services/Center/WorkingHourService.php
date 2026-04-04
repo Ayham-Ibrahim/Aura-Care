@@ -74,8 +74,10 @@ class WorkingHourService extends Service
     {
         try {
             $center = Auth::guard('center')->user();
+            DB::beginTransaction();
             $center->workingHours()->delete();
             $this->setDefaultForCenter($center);
+            DB::commit();
             return $this->getWorkingHours();
 
         } catch (\Exception $e) {

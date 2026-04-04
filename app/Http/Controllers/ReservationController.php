@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Reservation\CancelReservationRequest;
+use App\Http\Requests\Reservation\GetCenterPaymentInfoRequest;
+use App\Http\Requests\Reservation\GetSubserviceWithTime;
+use App\Http\Requests\Reservation\RatingCenterRequest;
 use App\Http\Requests\Reservation\StoreReservationRequest;
 use App\Http\Requests\Reservation\UpdateReservationRequest;
 use App\Http\Requests\Reservation\UpdateReservationStatusRequest;
+use App\Http\Requests\Reservation\ConfirmReservationRequest;
+use App\Models\Center\Center;
 use App\Models\Reservation;
 use App\Services\ReservationService;
-use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Http\Request;
 
 class ReservationController extends Controller
 {
@@ -23,6 +29,26 @@ class ReservationController extends Controller
         $reservations = $this->reservationService->getAllReservations($request->perPage);
         return $this->paginate($reservations, 'تم الحصول على جميع الحجوزات بنجاح');
     }
+
+
+    public function store(StoreReservationRequest $request)
+    {
+        $reservation = $this->reservationService->createReservation($request->validated());
+        return $this->success($reservation, 'تم إنشاء الحجز بنجاح');
+    }
+
+    public function getCenterPaymentInfo(Reservation $reservation)
+    {
+        $payload = $this->reservationService->getCenterPaymentInfo($reservation);
+        return $this->success($payload, 'تم جلب معلومات الدفع الخاصة بالمركز بنجاح');
+    }
+
+    public function confirmedReservation(ConfirmReservationRequest $request,Reservation $reservation)
+    {
+        $updated = $this->reservationService->confirmReservation($reservation, $request->validated());
+        return $this->success($updated, 'تم تأكيد الحجز بنجاح');
+    }
+
     // for customers: only change status (e.g., cancel)
     public function updateStatus(UpdateReservationStatusRequest $request, Reservation $reservation)
     {
@@ -30,10 +56,40 @@ class ReservationController extends Controller
         return $this->success($reservation, 'تم تعديل حالة الحجز');
     }
 
+    public function cancelReservationForUser(Reservation $reservation, CancelReservationRequest $request)
+    {
+        $reservation = $this->reservationService->cancelReservationForUser($reservation, $request->validated());
+        return $this->success($reservation, 'تم إلغاء الحجز بنجاح');
+    }
+
+    public function ratingCenter(Reservation $reservation, Center $center, RatingCenterRequest $request)
+    {
+        $center = $this->reservationService->rateCenter($reservation, $center, (float) $request->validated()['rating']);
+        return $this->success($center, 'تم تقييم المركز بنجاح');
+    }
+
     public function getCenterReservation()
     {
         $reservation = $this->reservationService->centerReservation();
         return $this->success($reservation,'تم الحصول على حجوزات المركز بنجاح ');
+    }
+
+    public function getSubserviceWithTime(GetSubserviceWithTime $request)
+    {
+        $response = $this->reservationService->getSubserviceWithTime($request->validated());
+        return $this->success($response, 'تم جلب بيانات الخدمات والأوقات المتاحة بنجاح');
+    }
+
+    public function getUserReservation()
+    {
+        $reservations = $this->reservationService->getUserReservation();
+        return $this->success($reservations, 'تم جلب حجوزات المستخدم بنجاح');
+    }
+
+    public function getUserReservationById(Reservation $reservation)
+    {
+        $res = $this->reservationService->getUserReservationById($reservation);
+        return $this->success($res, 'تم الحصول على تفاصيل الحجز بنجاح');
     }
 
     public function getReservationById(Reservation $reservation)

@@ -55,8 +55,8 @@ class CenterWorkSeeder extends Seeder
                 ]);
 
                 // إضافة ملفين افتراضيين
-                WorkFile::create(['work_id' => $work->id, 'path' => 'works/sample1.pdf']);
-                WorkFile::create(['work_id' => $work->id, 'path' => 'works/sample2.pdf']);
+                WorkFile::create(['work_id' => $work->id, 'path' => 'works/sample1.png']);
+                WorkFile::create(['work_id' => $work->id, 'path' => 'works/sample2.png']);
             }
         }
 

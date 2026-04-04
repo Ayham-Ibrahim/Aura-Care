@@ -7,6 +7,7 @@ use App\Models\Center\Center;
 use App\Models\ManageSubservice;
 use App\Models\Offer;
 use App\Models\Section;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class DashboardService extends Service
@@ -76,6 +77,8 @@ class DashboardService extends Service
         ])
             ->select('id', 'center_id', 'subservice_id', 'points', 'from', 'to')
             ->where('activating_points', 1)
+            ->where('from', '<=', Carbon::now())
+            ->where('to', '>=', Carbon::now())
             ->get();
 
         return $subservice->map(function (ManageSubservice $manageSubservice) {

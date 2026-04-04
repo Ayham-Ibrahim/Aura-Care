@@ -65,10 +65,6 @@ class DashboardService extends Service
         return Center::select('id', 'name', 'logo')->get();
     }
 
-    // TODO: add ->where(Carbon::now()->between(
-                //     Carbon::parse($item->from),
-                //     Carbon::parse($item->to)
-                // )) to only get subservices that have points active at the moment
     protected function fetchSubservicesHasPoints()
     {
         $subservice = ManageSubservice::with([

@@ -69,16 +69,16 @@ class CenterService extends Service
 
             // return $centers;
             return $centers->through(function ($center) {
-            return [
-                'id' => $center->id,
-                'name' => $center->name,
-                'logo' => $center->logo,
-                'phone' => $center->phone,
-                'owner_name' => $center->owner_name,
-                'owner_number' => $center->owner_number,
-                'request_date' => ($center->documents->updated_at)->format('Y-m-d') ?? null,
-            ];
-        });
+                return [
+                    'id' => $center->id,
+                    'name' => $center->name,
+                    'logo' => $center->logo,
+                    'phone' => $center->phone,
+                    'owner_name' => $center->owner_name,
+                    'owner_number' => $center->owner_number,
+                    'request_date' => ($center->documents->updated_at)->format('Y-m-d') ?? null,
+                ];
+            });
         } catch (\Exception $e) {
             Log::error('Error fetching pending centers', ['error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز المعلقة');
@@ -118,7 +118,7 @@ class CenterService extends Service
     public function getCenterDocuments(Center $center)
     {
         try {
-            return $center->documents->only('commercial_record','id_back','id_front','center_id');
+            return $center->documents->only('commercial_record', 'id_back', 'id_front', 'center_id');
         } catch (\Exception $e) {
             Log::error('Error fetching center documents', ['center_id' => $center->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب وثائق المركز');
@@ -423,9 +423,14 @@ class CenterService extends Service
 
     public function editSubservices($data)
     {
+        $center = Auth::guard('center')->user();
+        $manage_subservice = $center->manageSubservices()->where('subservice_id', $data['subservice_id'])->first();
+
+        if (!$manage_subservice) {
+            $this->throwExceptionJson('الخدمة الفرعية غير موجودة للمركز');
+        }
+
         try {
-            $center = Auth::guard('center')->user();
-            $manage_subservice = $center->manageSubservices()->where('subservice_id', $data['subservice_id'])->firstOrFail();
             $manage_subservice->update([
                 'price' => $data['price'] ?? $manage_subservice->price,
                 'is_active' => $data['is_active'] ?? $manage_subservice->is_active,

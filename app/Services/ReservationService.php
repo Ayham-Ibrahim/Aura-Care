@@ -6,6 +6,8 @@ use App\Models\Center\Center;
 use App\Models\ManageSubservice;
 use App\Models\Offer;
 use App\Models\Reservation;
+use App\Models\Reviews;
+use App\Services\FileStorage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
@@ -49,6 +51,7 @@ class ReservationService extends Service
                 'user_id' => $user_id,
                 'date' => $data['date'],
                 'total_amount' => $totalAmount,
+                'deposit_amount' =>  round($totalAmount * config('hypermsg.reservation.deposit_percentage'), 2),
             ]);
 
             if (!empty($data['subservices']) && is_array($data['subservices'])) {
@@ -209,6 +212,7 @@ class ReservationService extends Service
             $centerId = auth('center')->user()->id;
             $reservations = Reservation::with('user:id,name,avatar')->select('id', 'center_id', 'user_id', 'total_amount', 'status', 'deposit_amount')
                 ->where('center_id', $centerId)
+                ->whereNot('status', 'pending')
                 ->get();
             return $reservations;
         } catch (\Exception $e) {
@@ -216,6 +220,72 @@ class ReservationService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب حجوزات المركز');
         }
     }
+
+    public function getUserReservation()
+    {
+        try {
+            $userId = auth('sanctum')->id() ?? auth('api')->id();
+
+            $reservations = Reservation::with('center:id,name,logo')
+                ->where('user_id', $userId)
+                ->select('id', 'status', 'total_amount', 'deposit_amount', 'center_id')
+                ->get();
+
+            return $reservations->map(function ($reservation) {
+                return [
+                    'id' => $reservation->id,
+                    'status' => $reservation->status,
+                    'total_amount' => $reservation->total_amount,
+                    'deposit_amount' => $reservation->deposit_amount,
+                    'center' => $reservation->center ? $reservation->center->only(['id', 'logo', 'name']) : null,
+                ];
+            });
+        } catch (\Exception $e) {
+            Log::error('Error fetching user reservations', ['error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب حجوزات المستخدم');
+        }
+    }
+
+    public function getUserReservationById(Reservation $reservation)
+    {
+        $this->chackUserAuth($reservation);
+
+        try {
+            $reservation->load([
+                'center:id,name,logo,phone',
+                'manageSubservices:id,price,subservice_id',
+                'manageSubservices.subservice:id,name,image',
+            ]);
+            if (in_array($reservation->status, ['incompleted', 'cancelled', 'completed'])) {
+                $remaining_amount = 0;
+            } else {
+                $remaining_amount = $reservation->remaining_amount;
+            }
+
+            return [
+                'id' => $reservation->id,
+                'date' => $reservation->date,
+                'status' => $reservation->status,
+                'total_amount' => $reservation->total_amount,
+                'deposit_amount' => $reservation->deposit_amount,
+                'remaining_amount' =>  $remaining_amount,
+                'reason_for_cancellation' => $reservation->reason_for_cancellation,
+                'subservice' => $reservation->manageSubservices->map(function ($sub) {
+                    return [
+                        'id' => $sub->id,
+                        'price' => $sub->price,
+                        'name' => $sub->subservice->name ?? null,
+                        'image' => $sub->subservice->image ?? null,
+                    ];
+                }),
+                'center' => $reservation->center ? $reservation->center->only(['id', 'logo', 'name', 'phone']) : null,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error fetching user reservation by id', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب تفاصيل الحجز');
+        }
+    }
+
     public function ReservationById($id)
     {
         try {
@@ -248,10 +318,81 @@ class ReservationService extends Service
         return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
     }
 
+    public function cancelReservationForUser(Reservation $reservation, array $data)
+    {
+        $this->chackUserAuth($reservation);
+
+        if ($reservation->status === 'cancelled') {
+            $this->throwExceptionJson('تم إلغاء الحجز بالفعل');
+        }
+
+        $hoursDiff = Carbon::now()->diffInHours($reservation->date, false);
+        if ($hoursDiff <= 24) {
+            $this->throwExceptionJson('لا يمكن إلغاء الحجز قبل أقل من 24 ساعة');
+        }
+
+        DB::beginTransaction();
+        try {
+            $reservation->update([
+                'status' => 'cancelled',
+                'reason_for_cancellation' => $data['reason'],
+            ]);
+            DB::commit();
+            return $reservation;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error cancelling reservation for user', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء إلغاء الحجز');
+        }
+    }
+
+    public function rateCenter(Reservation $reservation, Center $center, float $rating)
+    {
+        $this->chackUserAuth($reservation);
+
+        if ($reservation->center_id !== $center->id) {
+            $this->throwExceptionJson('مركز الحجز غير مطابق للمركز المراد تقييمه', 403);
+        }
+
+        if ($reservation->status !== 'completed') {
+            $this->throwExceptionJson('لا يمكن تقييم المركز إلا بعد اكتمال الحجز');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            Reviews::updateOrCreate([
+                'user_id' => auth('sanctum')->id(),
+                'center_id' => $center->id,
+            ], [
+                'rating' => $rating,
+            ]);
+
+            $rate = Reviews::where('center_id', $center->id)->avg('rating');
+
+            $center->update(['rating' => $rate]);
+
+            DB::commit();
+            return $center->fresh();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error rating center', ['reservation_id' => $reservation->id, 'center_id' => $center->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تقييم المركز');
+        }
+    }
+
     public function chackCenterAuth($reservation)
     {
         $centerId = auth('center')->user()->id;
         if ($reservation->center_id != $centerId) {
+            $this->throwExceptionJson('غير مصرح لك بالوصول إلى هذا الحجز', 403);
+        }
+    }
+
+    public function chackUserAuth($reservation)
+    {
+        $userId = auth('sanctum')->id();
+        if (!$userId || $reservation->user_id != $userId) {
             $this->throwExceptionJson('غير مصرح لك بالوصول إلى هذا الحجز', 403);
         }
     }
@@ -265,6 +406,42 @@ class ReservationService extends Service
         } catch (\Exception $e) {
             Log::error('Error fetching reservation user info', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب بيانات المستخدم');
+        }
+    }
+
+    public function getCenterPaymentInfo(Reservation $reservation)
+    {
+        $this->chackUserAuth($reservation);
+        try {
+
+            $center = $reservation->center;
+
+            return [
+                'reservation_id' => $reservation->id,
+                'deposit_amount' => $reservation->deposit_amount,
+                'sham_image' => $center->sham_image,
+                'sham_code' => $center->sham_code,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error fetching center payment info', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب معلومات الدفع');
+        }
+    }
+
+    public function confirmReservation(Reservation $reservation, $data)
+    {
+        $this->chackUserAuth($reservation);
+
+        try {
+            $data = $reservation->update([
+                'payment_image' => FileStorage::storeFile($data['image'], 'reservations/payments', 'img'),
+                'status' => 'confirmed',
+            ]);
+
+            return $data;
+        } catch (\Exception $e) {
+            Log::error('Error confirming reservation', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تأكيد الحجز');
         }
     }
 }

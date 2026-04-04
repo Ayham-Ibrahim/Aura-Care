@@ -321,8 +321,16 @@ class ReservationService extends Service
     public function cancelReservation(Reservation $reservation)
     {
         $this->chackCenterAuth($reservation);
-        $res = $this->updateReservationStatus($reservation, 'cancelled');
-        return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+        try {
+            $reservation->update([
+                'status' => 'cancelled',
+                'reason_for_cancellation' => 'تم إلغاء الحجز من قبل المركز',
+            ]);
+            return $reservation->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+        } catch (\Exception $e) {
+            Log::error('Error cancelling reservation', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء إلغاء الحجز');
+        }
     }
 
     public function cancelReservationForUser(Reservation $reservation, array $data)

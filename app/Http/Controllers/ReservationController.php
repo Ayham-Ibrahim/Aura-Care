@@ -110,6 +110,12 @@ class ReservationController extends Controller
         return $this->success($res, 'تم تعديل حالة الحجز');
     }
 
+    public function ReservationIncomplete( Reservation $reservation)
+    {
+        $res = $this->reservationService->ReservationIncomplete($reservation);
+        return $this->success($res, 'تم تعديل الحجز بنجاح');
+    }
+
     public function cancelReservation(Reservation $reservation)
     {
         $res = $this->reservationService->cancelReservation($reservation);

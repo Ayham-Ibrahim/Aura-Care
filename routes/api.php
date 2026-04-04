@@ -188,6 +188,7 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     Route::get('reservations/{reservation}', [ReservationController::class, 'getReservationById']);
     Route::patch('reservations/{reservation}/accept', [ReservationController::class, 'acceptReservation']);
     Route::patch('reservations/{reservation}/complete', [ReservationController::class, 'reservationCompleted']);
+    Route::patch('reservations/{reservation}/incomplete', [ReservationController::class, 'ReservationIncomplete']);
     Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'cancelReservation']);
     Route::get('reservations/{reservation}/user', [ReservationController::class, 'getReservationUserInfo']);
 

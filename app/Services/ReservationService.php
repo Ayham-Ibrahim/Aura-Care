@@ -311,6 +311,13 @@ class ReservationService extends Service
         return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
     }
 
+    public function ReservationIncomplete(Reservation $reservation)
+    {
+        $this->chackCenterAuth($reservation);
+        $res = $this->updateReservationStatus($reservation, 'incompleted');
+        return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+    }
+
     public function cancelReservation(Reservation $reservation)
     {
         $this->chackCenterAuth($reservation);

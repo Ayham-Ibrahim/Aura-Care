@@ -61,4 +61,20 @@ class StoreOfferRequest extends FormRequest
             'subservice.*.exists' => 'الخدمة الفرعية المختارة غير موجودة في النظام.',
         ];
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if ($this->filled('subservice')) {
+                $center = auth()->guard('center')->user();
+                $subserviceIds = $center->manageSubservices()->where('is_active', true)->pluck('subservice_id')->toArray();
+
+                foreach ($this->subservice as $subserviceId) {
+                    if (!in_array($subserviceId, $subserviceIds)) {
+                        $validator->errors()->add('subservice', 'الخدمة الفرعية المختارة غير متاحة للمركز.');
+                    }
+                }
+            }
+        });
+    }
 }

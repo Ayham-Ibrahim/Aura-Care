@@ -15,6 +15,7 @@ use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OfferController;
+use App\Http\Controllers\WalletController;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 
 // Route::get('/user', function (Request $request) {
@@ -99,6 +100,10 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::patch('centers/{center}/documents/accept', [CenterController::class, 'acceptCenterDocuments']);
     Route::patch('centers/{center}/documents/reject', [CenterController::class, 'rejectCenterDocuments']);
     Route::get('centers/{center}/works', [CenterController::class, 'getWorks']);
+    Route::get('wallets', [WalletController::class, 'getWalletForAdmin']);
+    Route::get('wallets/{center}', [WalletController::class, 'getCenterWalletDetails']);
+    Route::patch('wallets/{wallet}/paid', [WalletController::class, 'markWalletAsPaid']);
+    Route::patch('centers/{center}/wallets/paid', [WalletController::class, 'markCenterWalletsAsPaid']);
     // Route::post('centers/{id}/restore', [CenterController::class, 'restore']);
 
     Route::apiResource('ads', AdController::class);
@@ -189,8 +194,13 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     Route::patch('reservations/{reservation}/accept', [ReservationController::class, 'acceptReservation']);
     Route::patch('reservations/{reservation}/complete', [ReservationController::class, 'reservationCompleted']);
     Route::patch('reservations/{reservation}/incomplete', [ReservationController::class, 'ReservationIncomplete']);
-    Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'cancelReservation']);
+    Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'rejectReservation']);
+    
     Route::get('reservations/{reservation}/user', [ReservationController::class, 'getReservationUserInfo']);
+    Route::patch('reservations/{reservation}/confirm-deposit-refund', [ReservationController::class, 'confirmDepositRefund']);
+   
+   
+    Route::get('wallet', [WalletController::class, 'getWalletForCenter']);
 
     // Center working hours (24/7 default, editable by center)
     Route::get('working-hours', [WorkingHourController::class, 'index']);

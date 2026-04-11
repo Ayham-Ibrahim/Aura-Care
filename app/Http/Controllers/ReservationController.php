@@ -115,11 +115,23 @@ class ReservationController extends Controller
         $res = $this->reservationService->ReservationIncomplete($reservation);
         return $this->success($res, 'تم تعديل الحجز بنجاح');
     }
-
-    public function cancelReservation(Reservation $reservation)
+    
+    public function confirmDepositRefund(Reservation $reservation)
     {
-        $res = $this->reservationService->cancelReservation($reservation);
-        return $this->success($res, 'تم إلغاء الحجز بنجاح');
+        $reservation = $this->reservationService->confirmDepositRefund($reservation);
+        return $this->success($reservation, 'تم تأكيد رد العربون بنجاح');
+    }
+
+    // public function cancelReservation(Reservation $reservation)
+    // {
+    //     $res = $this->reservationService->cancelReservation($reservation);
+    //     return $this->success($res, 'تم إلغاء الحجز بنجاح');
+    // }
+
+    public function rejectReservation(Reservation $reservation, CancelReservationRequest $request)
+    {
+        $res = $this->reservationService->rejectReservation($reservation, $request->validated());
+        return $this->success($res, 'تم رفض الحجز بنجاح، بانتظار رفع صورة الدفع خلال 30 دقيقة');
     }
 
     //TODO: ليزم نخزن صورة المرتجع للزبون في حقل ال  cancellation_image

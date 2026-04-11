@@ -32,7 +32,6 @@ class StoreOfferRequest extends FormRequest
                         |max:5000',
             'subservice' => 'required|array|min:1',
             'subservice.*' => 'required|integer|exists:subservices,id',
-            // TODO: Add validation to make sure the selected subservices belong to the center and are active
         ];
     }
 

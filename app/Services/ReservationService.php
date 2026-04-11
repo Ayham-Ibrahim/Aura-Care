@@ -311,11 +311,47 @@ class ReservationService extends Service
         return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
     }
 
-    public function cancelReservation(Reservation $reservation)
+    public function confirmDepositRefund(Reservation $reservation)
     {
         $this->chackCenterAuth($reservation);
-        $res = $this->updateReservationStatus($reservation, 'cancelled');
-        return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+
+        if ($reservation->is_return) {
+            $this->throwExceptionJson('تم تأكيد رد العربون بالفعل', 422);
+        }
+
+        try {
+            $reservation->update(['is_return' => true]);
+            return $reservation;
+        } catch (\Exception $e) {
+            Log::error('Error confirming deposit refund', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تأكيد رد العربون');
+        }
+    }
+
+    // public function cancelReservation(Reservation $reservation)
+    // {
+    //     $this->chackCenterAuth($reservation);
+    //     $res = $this->updateReservationStatus($reservation, 'cancelled');
+    //     return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+    // }
+
+    public function rejectReservation(Reservation $reservation, array $data)
+    {
+        $this->chackCenterAuth($reservation);
+
+        try {
+            $reservation->update([
+                'status' => 'partially_rejected',
+                'rejection_time' => now(),
+                'reason_for_cancellation' => $data['reason'] ?? null,
+            ]);
+
+            // return $reservation->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+            return $reservation;
+        } catch (\Exception $e) {
+            Log::error('Error rejecting reservation', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء رفض الحجز');
+        }
     }
 
     public function cancelReservationForUser(Reservation $reservation, array $data)
@@ -433,12 +469,13 @@ class ReservationService extends Service
         $this->chackUserAuth($reservation);
 
         try {
-            $data = $reservation->update([
+            $reservation->update([
                 'payment_image' => FileStorage::storeFile($data['image'], 'reservations/payments', 'img'),
                 'status' => 'confirmed',
+                'rejection_time' => null, // مسح وقت الرفض
             ]);
 
-            return $data;
+            return $reservation;
         } catch (\Exception $e) {
             Log::error('Error confirming reservation', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء تأكيد الحجز');

@@ -187,8 +187,11 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     Route::get('reservations', [ReservationController::class, 'getCenterReservation']);
     Route::get('reservations/{reservation}', [ReservationController::class, 'getReservationById']);
     Route::patch('reservations/{reservation}/accept', [ReservationController::class, 'acceptReservation']);
+    Route::patch('reservations/{reservation}/reject', [ReservationController::class, 'rejectReservation']);
     Route::patch('reservations/{reservation}/complete', [ReservationController::class, 'reservationCompleted']);
-    Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'cancelReservation']);
+    Route::patch('reservations/{reservation}/confirm-deposit-refund', [ReservationController::class, 'confirmDepositRefund']);
+    // Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'cancelReservation']);
+    Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'rejectReservation']);
     Route::get('reservations/{reservation}/user', [ReservationController::class, 'getReservationUserInfo']);
 
     // Center working hours (24/7 default, editable by center)

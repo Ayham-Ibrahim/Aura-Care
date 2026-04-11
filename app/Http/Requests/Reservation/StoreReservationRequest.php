@@ -86,10 +86,10 @@ class StoreReservationRequest extends FormRequest
 
             $subserviceIds = $subserviceIds->unique()->filter()->toArray();
 
-            //TODO: error in this query -> status = [processing, confirmed]
+            
             $existing = Reservation::where('center_id', $this->center_id)
                 ->where('date', $reservationDate->toDateTimeString())
-                ->whereNotIn('status', ['cancelled', 'completed'])
+                ->whereIn('status', ['processing', 'confirmed', 'partially_rejected'])
                 ->where(function ($query) use ($subserviceIds) {
                     // البحث في الخدمات المباشرة
                     $query->whereHas('manageSubservices', function ($q) use ($subserviceIds) {

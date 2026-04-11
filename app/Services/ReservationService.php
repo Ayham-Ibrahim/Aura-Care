@@ -146,12 +146,11 @@ class ReservationService extends Service
                 return (bool) $entry->is_active;
             })->keyBy('day');
 
-            //TODO: error in this query -> status = [processing, confirmed]
+            
             $reservationQuery = Reservation::select('id', 'date')
                 ->where('center_id', $center->id)
                 ->whereBetween('date', [$now->toDateString(), $endDate->toDateString()])
-                ->where('status', '!=', 'cancelled')
-                ->where('status', '!=', 'completed')
+                ->whereIn('status', ['processing', 'confirmed', 'partially_rejected'])
                 ->where(function ($query) use ($data) {
                     // البحث في الخدمات المباشرة
                     $query->whereHas('manageSubservices', function ($q) use ($data) {

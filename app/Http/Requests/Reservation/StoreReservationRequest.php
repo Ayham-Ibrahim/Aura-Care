@@ -86,22 +86,12 @@ class StoreReservationRequest extends FormRequest
 
             $subserviceIds = $subserviceIds->unique()->filter()->toArray();
 
-            
+
             $existing = Reservation::where('center_id', $this->center_id)
                 ->where('date', $reservationDate->toDateTimeString())
                 ->whereIn('status', ['processing', 'confirmed', 'partially_rejected'])
-                ->where(function ($query) use ($subserviceIds) {
-                    // البحث في الخدمات المباشرة
-                    $query->whereHas('manageSubservices', function ($q) use ($subserviceIds) {
-                        $q->whereIn('manage_subservices.id', $subserviceIds);
-                    });
-
-                    // أو الحجوزات التي تحتوي على عروض تشمل الخدمات المطلوبة
-                    $query->orWhereHas('offers', function ($q) use ($subserviceIds) {
-                        $q->whereHas('manageSubservices', function ($subQ) use ($subserviceIds) {
-                            $subQ->whereIn('manage_subservices.id', $subserviceIds);
-                        });
-                    });
+                ->whereHas('manageSubservices', function ($q) use ($subserviceIds) {
+                    $q->whereIn('manage_subservices.id', $subserviceIds);
                 })
                 ->exists();
 
@@ -110,6 +100,4 @@ class StoreReservationRequest extends FormRequest
             }
         });
     }
-
-
 }

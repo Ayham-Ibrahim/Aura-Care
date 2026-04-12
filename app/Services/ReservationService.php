@@ -73,7 +73,7 @@ class ReservationService extends Service
                 $reservation->manageSubservices()->sync(array_unique($data['subservices']));
             }
 
-            if (!isset($data['offer']) && !empty($data['offer'])) {
+            if (isset($data['offer']) && !empty($data['offer'])) {
                 $reservation->offers()->sync($data['offer']);
             }
 
@@ -165,18 +165,8 @@ class ReservationService extends Service
                 ->where('center_id', $center->id)
                 ->whereBetween('date', [$now->toDateString(), $endDate->toDateString()])
                 ->whereIn('status', ['processing', 'confirmed', 'partially_rejected'])
-                ->where(function ($query) use ($data) {
-                    // البحث في الخدمات المباشرة
-                    $query->whereHas('manageSubservices', function ($q) use ($data) {
-                        $q->whereIn('manage_subservices.id', $data['manage_subservice']);
-                    });
-
-                    // أو الحجوزات التي تحتوي على عروض تشمل الخدمات المطلوبة
-                    $query->orWhereHas('offers', function ($q) use ($data) {
-                        $q->whereHas('manageSubservices', function ($subQ) use ($data) {
-                            $subQ->whereIn('manage_subservices.id', $data['manage_subservice']);
-                        });
-                    });
+                ->whereHas('manageSubservices', function ($q) use ($data) {
+                    $q->whereIn('manage_subservices.id', $data['manage_subservice']);
                 });
 
             $reservations = $reservationQuery->get();

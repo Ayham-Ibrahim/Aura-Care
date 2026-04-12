@@ -38,12 +38,12 @@ class DashboardService extends Service
             ->get()
             ->map(function (Offer $offer) {
                 $center = $offer->center ? $offer->center->only(['id', 'name', 'logo', 'rating']) : null;
-
+                $price = $offer->manageSubservices->sum('price') - $offer->discount_value;
                 return [
                     'id' => $offer->id,
                     'image' => $offer->image,
                     'description' => $offer->description,
-                    'price' => $offer->discount_value,
+                    'price' => $price,
                     'old_price' => $offer->manageSubservices->sum('price'),
                     'center' => $center,
                 ];

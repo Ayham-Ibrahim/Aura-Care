@@ -17,9 +17,23 @@ use Illuminate\Support\Facades\Log;
 
 class ReservationService extends Service
 {
-    public function getAllReservations($perPage = 10)
+    public function getAllReservations($perPage)
     {
-        return Reservation::with('center:id,name', 'user:id,name')->paginate($perPage);
+        $reservations = Reservation::select('id', 'center_id', 'user_id', 'status', 'date')
+            ->with('center:id,name,logo', 'user:id,name', 'manageSubservices.subservice:id,name')
+            ->paginate($perPage ?? 10);
+
+        // إضافة subservices بعد جلب البيانات
+        $reservations->getCollection()->transform(function ($reservation) {
+            $reservation['subservices'] = $reservation->manageSubservices
+                ->map(fn($item) => $item->subservice->name ?? null)
+                ->filter()
+                ->values();
+
+            return $reservation;
+        });
+        $reservations->makeHidden('manageSubservices');
+        return $reservations;
     }
 
     public function createReservation(array $data)
@@ -146,7 +160,7 @@ class ReservationService extends Service
                 return (bool) $entry->is_active;
             })->keyBy('day');
 
-            
+
             $reservationQuery = Reservation::select('id', 'date')
                 ->where('center_id', $center->id)
                 ->whereBetween('date', [$now->toDateString(), $endDate->toDateString()])
@@ -289,13 +303,9 @@ class ReservationService extends Service
 
     public function ReservationById($id)
     {
-        try {
-            $reservation = Reservation::with('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image')->findOrFail($id);
-            return $reservation;
-        } catch (\Exception $e) {
-            Log::error('Error fetching reservation by ID', ['reservation_id' => $id, 'error' => $e->getMessage()]);
-            $this->throwExceptionJson('حدث خطأ ما أثناء جلب الحجز');
-        }
+        $reservation = Reservation::with('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image')->findOrFail($id);
+        $this->chackCenterAuth($reservation);
+        return $reservation;
     }
 
     public function acceptReservation(Reservation $reservation)

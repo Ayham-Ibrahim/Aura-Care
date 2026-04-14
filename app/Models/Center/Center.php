@@ -8,6 +8,7 @@ use App\Models\Service;
 use App\Models\Subservice;
 use App\Models\Center\WorkingHour;
 use App\Models\Offer;
+use App\Models\Wallet;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
@@ -105,6 +106,16 @@ class Center extends Model
     public function offers()
     {
         return $this->hasMany(Offer::class);
+    }
+
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    public function wallets()
+    {
+        return $this->hasMany(Wallet::class);
     }
 
     public function getWorkingHoursFormattedAttribute()

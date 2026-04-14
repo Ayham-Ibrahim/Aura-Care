@@ -7,6 +7,7 @@ use App\Models\Center\Center;
 use App\Models\ManageSubservice;
 use App\Models\Offer;
 use App\Models\Section;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class DashboardService extends Service
@@ -34,15 +35,17 @@ class DashboardService extends Service
             'manageSubservices:id,price',
         ])
             ->select('id', 'center_id', 'image', 'description', 'discount_value')
+            ->where('from', '<=', Carbon::now())
+            ->where('to', '>=', Carbon::now())
             ->get()
             ->map(function (Offer $offer) {
                 $center = $offer->center ? $offer->center->only(['id', 'name', 'logo', 'rating']) : null;
-
+                $price = $offer->manageSubservices->sum('price') - $offer->discount_value;
                 return [
                     'id' => $offer->id,
                     'image' => $offer->image,
                     'description' => $offer->description,
-                    'price' => $offer->discount_value,
+                    'price' => $price,
                     'old_price' => $offer->manageSubservices->sum('price'),
                     'center' => $center,
                 ];
@@ -64,10 +67,6 @@ class DashboardService extends Service
         return Center::select('id', 'name', 'logo')->get();
     }
 
-    // TODO: add ->where(Carbon::now()->between(
-                //     Carbon::parse($item->from),
-                //     Carbon::parse($item->to)
-                // )) to only get subservices that have points active at the moment
     protected function fetchSubservicesHasPoints()
     {
         $subservice = ManageSubservice::with([
@@ -76,6 +75,8 @@ class DashboardService extends Service
         ])
             ->select('id', 'center_id', 'subservice_id', 'points', 'from', 'to')
             ->where('activating_points', 1)
+            ->where('from', '<=', Carbon::now())
+            ->where('to', '>=', Carbon::now())
             ->get();
 
         return $subservice->map(function (ManageSubservice $manageSubservice) {

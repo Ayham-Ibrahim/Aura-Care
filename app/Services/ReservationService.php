@@ -7,6 +7,7 @@ use App\Models\ManageSubservice;
 use App\Models\Offer;
 use App\Models\Reservation;
 use App\Models\Reviews;
+use App\Models\Wallet;
 use App\Services\FileStorage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -16,9 +17,23 @@ use Illuminate\Support\Facades\Log;
 
 class ReservationService extends Service
 {
-    public function getAllReservations($perPage = 10)
+    public function getAllReservations($perPage)
     {
-        return Reservation::with('center:id,name', 'user:id,name')->paginate($perPage);
+        $reservations = Reservation::select('id', 'center_id', 'user_id', 'status', 'date')
+            ->with('center:id,name,logo', 'user:id,name', 'manageSubservices.subservice:id,name')
+            ->paginate($perPage ?? 10);
+
+        // إضافة subservices بعد جلب البيانات
+        $reservations->getCollection()->transform(function ($reservation) {
+            $reservation['subservices'] = $reservation->manageSubservices
+                ->map(fn($item) => $item->subservice->name ?? null)
+                ->filter()
+                ->values();
+
+            return $reservation;
+        });
+        $reservations->makeHidden('manageSubservices');
+        return $reservations;
     }
 
     public function createReservation(array $data)
@@ -58,7 +73,7 @@ class ReservationService extends Service
                 $reservation->manageSubservices()->sync(array_unique($data['subservices']));
             }
 
-            if (!isset($data['offer']) && !empty($data['offer'])) {
+            if (isset($data['offer']) && !empty($data['offer'])) {
                 $reservation->offers()->sync($data['offer']);
             }
 
@@ -85,6 +100,7 @@ class ReservationService extends Service
     }
     public function getSubserviceWithTime(array $data)
     {
+        $is_offer = false;
         $center = Center::with('workingHours')->findOrFail($data['center_id']);
 
         if (!$center) {
@@ -96,6 +112,7 @@ class ReservationService extends Service
                 $this->throwExceptionJson('العرض غير موجود لنفس المركز', 422);
             }
             $data['manage_subservice'] = $offer->manageSubservices->pluck('id')->toArray();
+            $is_offer = true;
         }
 
         $selectedSubservices = ManageSubservice::with('subservice:id,name,image')
@@ -145,23 +162,13 @@ class ReservationService extends Service
                 return (bool) $entry->is_active;
             })->keyBy('day');
 
+
             $reservationQuery = Reservation::select('id', 'date')
                 ->where('center_id', $center->id)
                 ->whereBetween('date', [$now->toDateString(), $endDate->toDateString()])
-                ->where('status', '!=', 'cancelled')
-                ->where('status', '!=', 'completed')
-                ->where(function ($query) use ($data) {
-                    // البحث في الخدمات المباشرة
-                    $query->whereHas('manageSubservices', function ($q) use ($data) {
-                        $q->whereIn('manage_subservices.id', $data['manage_subservice']);
-                    });
-
-                    // أو الحجوزات التي تحتوي على عروض تشمل الخدمات المطلوبة
-                    $query->orWhereHas('offers', function ($q) use ($data) {
-                        $q->whereHas('manageSubservices', function ($subQ) use ($data) {
-                            $subQ->whereIn('manage_subservices.id', $data['manage_subservice']);
-                        });
-                    });
+                ->whereIn('status', ['processing', 'confirmed', 'partially_rejected'])
+                ->whereHas('manageSubservices', function ($q) use ($data) {
+                    $q->whereIn('manage_subservices.id', $data['manage_subservice']);
                 });
 
             $reservations = $reservationQuery->get();
@@ -195,6 +202,7 @@ class ReservationService extends Service
             return [
                 'old_amount' => $oldAmount,
                 'new_amount' => $newAmount,
+                'is_offer' => $is_offer,
                 'subservices' => $subservicesData,
                 'available_times' => $availableTimes,
             ];
@@ -288,13 +296,9 @@ class ReservationService extends Service
 
     public function ReservationById($id)
     {
-        try {
-            $reservation = Reservation::with('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image')->findOrFail($id);
-            return $reservation;
-        } catch (\Exception $e) {
-            Log::error('Error fetching reservation by ID', ['reservation_id' => $id, 'error' => $e->getMessage()]);
-            $this->throwExceptionJson('حدث خطأ ما أثناء جلب الحجز');
-        }
+        $reservation = Reservation::with('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image')->findOrFail($id);
+        $this->chackCenterAuth($reservation);
+        return $reservation;
     }
 
     public function acceptReservation(Reservation $reservation)
@@ -307,15 +311,124 @@ class ReservationService extends Service
     public function reservationCompleted(Reservation $reservation)
     {
         $this->chackCenterAuth($reservation);
-        $res = $this->updateReservationStatus($reservation, 'completed');
-        return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+        if ($reservation->status != 'processing') {
+            $this->throwExceptionJson('لا يمكن تعديل حالة الحجز إلى مكتمل إلا إذا كان قيد المعالجة', 422);
+        }
+
+        try {
+
+            $profit_percentage = $reservation->center->section->profit_percentage;
+            $amount = ($reservation->total_amount * $profit_percentage) / 100;
+
+            DB::beginTransaction();
+            $reservation->wallet()->updateOrCreate([
+                'reservation_id' => $reservation->id,
+            ], [
+                'center_id' => $reservation->center_id,
+                'is_paid' => false,
+                'required_value' => $amount,
+            ]);
+            $reservation->update(['status' => 'completed']);
+            DB::commit();
+
+            return $reservation->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error completing reservation', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء إكمال الحجز');
+        }
     }
 
-    public function cancelReservation(Reservation $reservation)
+
+    public function ReservationIncomplete(Reservation $reservation)
     {
         $this->chackCenterAuth($reservation);
-        $res = $this->updateReservationStatus($reservation, 'cancelled');
-        return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+        if ($reservation->status != 'processing') {
+            $this->throwExceptionJson('لا يمكن تعديل حالة الحجز إلى مكتمل إلا إذا كان قيد المعالجة', 422);
+        }
+
+        try {
+
+            $profit_percentage = $reservation->center->section->profit_percentage;
+            $amount = ($reservation->deposit_amount * $profit_percentage) / 100;
+
+            DB::beginTransaction();
+            $reservation->wallet()->updateOrCreate([
+                'reservation_id' => $reservation->id,
+            ], [
+                'center_id' => $reservation->center_id,
+                'is_paid' => false,
+                'required_value' => $amount,
+            ]);
+
+            $reservation->update(['status' => 'incompleted']);
+            DB::commit();
+
+            return $reservation;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error marking reservation as incomplete', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل حالة الحجز إلى غير مكتمل');
+        }
+    }
+
+    // public function cancelReservation(Reservation $reservation)
+    // {
+    //     $this->chackCenterAuth($reservation);
+    //     try {
+    //         $reservation->update([
+    //             'status' => 'cancelled',
+    //             'reason_for_cancellation' => 'تم إلغاء الحجز من قبل المركز',
+    //         ]);
+    //         return $reservation->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+    //     } catch (\Exception $e) {
+    //         Log::error('Error cancelling reservation', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+    //         $this->throwExceptionJson('حدث خطأ ما أثناء إلغاء الحجز');
+
+    //     }
+    // }
+
+    public function confirmDepositRefund(Reservation $reservation)
+    {
+        $this->chackCenterAuth($reservation);
+
+        if ($reservation->is_return) {
+            $this->throwExceptionJson('تم تأكيد رد العربون بالفعل', 422);
+        }
+
+        try {
+            $reservation->update(['is_return' => true]);
+            return $reservation;
+        } catch (\Exception $e) {
+            Log::error('Error confirming deposit refund', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تأكيد رد العربون');
+        }
+    }
+
+    // public function cancelReservation(Reservation $reservation)
+    // {
+    //     $this->chackCenterAuth($reservation);
+    //     $res = $this->updateReservationStatus($reservation, 'cancelled');
+    //     return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+    // }
+
+    public function rejectReservation(Reservation $reservation, array $data)
+    {
+        $this->chackCenterAuth($reservation);
+
+        try {
+            $reservation->update([
+                'status' => 'partially_rejected',
+                'rejection_time' => now(),
+                'reason_for_cancellation' => $data['reason'] ?? null,
+            ]);
+
+            // return $reservation->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+            return $reservation;
+        } catch (\Exception $e) {
+            Log::error('Error rejecting reservation', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء رفض الحجز');
+        }
     }
 
     public function cancelReservationForUser(Reservation $reservation, array $data)
@@ -358,13 +471,22 @@ class ReservationService extends Service
             $this->throwExceptionJson('لا يمكن تقييم المركز إلا بعد اكتمال الحجز');
         }
 
+        // التحقق من أن المستخدم لم يقيّم هذا الحجز من قبل
+        $existingReview = Reviews::where('user_id', auth('sanctum')->id())
+            ->where('reservation_id', $reservation->id)
+            ->first();
+
+        if ($existingReview) {
+            $this->throwExceptionJson('لقد قمت بتقييم هذا الحجز مسبقاً');
+        }
+
         try {
             DB::beginTransaction();
 
-            Reviews::updateOrCreate([
+            Reviews::create([
                 'user_id' => auth('sanctum')->id(),
                 'center_id' => $center->id,
-            ], [
+                'reservation_id' => $reservation->id,
                 'rating' => $rating,
             ]);
 
@@ -433,12 +555,13 @@ class ReservationService extends Service
         $this->chackUserAuth($reservation);
 
         try {
-            $data = $reservation->update([
+            $reservation->update([
                 'payment_image' => FileStorage::storeFile($data['image'], 'reservations/payments', 'img'),
                 'status' => 'confirmed',
+                'rejection_time' => null, // مسح وقت الرفض
             ]);
 
-            return $data;
+            return $reservation;
         } catch (\Exception $e) {
             Log::error('Error confirming reservation', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء تأكيد الحجز');

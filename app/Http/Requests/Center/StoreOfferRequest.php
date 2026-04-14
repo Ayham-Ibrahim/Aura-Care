@@ -32,7 +32,6 @@ class StoreOfferRequest extends FormRequest
                         |max:5000',
             'subservice' => 'required|array|min:1',
             'subservice.*' => 'required|integer|exists:subservices,id',
-            // TODO: Add validation to make sure the selected subservices belong to the center and are active
         ];
     }
 
@@ -60,5 +59,21 @@ class StoreOfferRequest extends FormRequest
             'subservice.*.integer' => 'كل خدمة فرعية مختارة يجب أن تكون رقمًا صحيحًا.',
             'subservice.*.exists' => 'الخدمة الفرعية المختارة غير موجودة في النظام.',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if ($this->filled('subservice')) {
+                $center = auth()->guard('center')->user();
+                $subserviceIds = $center->manageSubservices()->where('is_active', true)->pluck('subservice_id')->toArray();
+
+                foreach ($this->subservice as $subserviceId) {
+                    if (!in_array($subserviceId, $subserviceIds)) {
+                        $validator->errors()->add('subservice', 'الخدمة الفرعية المختارة غير متاحة للمركز.');
+                    }
+                }
+            }
+        });
     }
 }

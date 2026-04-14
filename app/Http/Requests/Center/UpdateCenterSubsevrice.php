@@ -21,7 +21,6 @@ class UpdateCenterSubsevrice extends FormRequest
      */
     public function rules(): array
     {
-        // TODO: price should be required if is_active is true, and (points,from,to) should be required if activating_points is true
         return [
             'subservice_id' => 'required|exists:subservices,id',
             'price' => 'sometimes|numeric|min:0',
@@ -31,5 +30,28 @@ class UpdateCenterSubsevrice extends FormRequest
             'from' => 'sometimes|date',
             'to' => 'sometimes|date|after_or_equal:from',
         ];
+    }
+
+    public function withvalidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if ($this->filled('activating_points') && $this->activating_points) {
+                if (!$this->filled('points')) {
+                    $validator->errors()->add('points', 'يجب تحديد عدد النقاط عند تفعيل النقاط.');
+                }
+                if (!$this->filled('from')) {
+                    $validator->errors()->add('from', 'يجب تحديد تاريخ بدء تفعيل النقاط.');
+                }
+                if (!$this->filled('to')) {
+                    $validator->errors()->add('to', 'يجب تحديد تاريخ انتهاء تفعيل النقاط.');
+                }
+            }
+
+            if ($this->filled('is_active') && $this->is_active) {
+                if (!$this->filled('price')) {
+                    $validator->errors()->add('price', 'يجب تحديد السعر عند تفعيل الخدمة.');
+                }
+            }
+        });
     }
 }

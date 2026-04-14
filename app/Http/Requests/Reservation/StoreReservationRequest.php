@@ -57,6 +57,28 @@ class StoreReservationRequest extends FormRequest
                 return;
             }
 
+            // التحقق من وقت العرض (from, to)
+            if ($hasOffers) {
+                $offer = Offer::find($this->offer);
+                if ($offer) {
+                    $now = now();
+                    $fromDate = $offer->from ? Carbon::parse($offer->from) : null;
+                    $toDate = $offer->to ? Carbon::parse($offer->to) : null;
+
+                    // التحقق من تاريخ البداية
+                    if ($fromDate && $now->lt($fromDate)) {
+                        $validator->errors()->add('offer', 'العرض غير متاح حالياً. يبدأ من ' . $fromDate->format('Y-m-d H:i'));
+                        return;
+                    }
+
+                    // التحقق من تاريخ النهاية
+                    if ($toDate && $now->gt($toDate)) {
+                        $validator->errors()->add('offer', 'العرض منتهي الصلاحية. انتهى في ' . $toDate->format('Y-m-d H:i'));
+                        return;
+                    }
+                }
+            }
+
             if (!$this->filled('date')) {
                 // يتحقق من القاعدة الأساسية في rules() ولا نكمل بدون تاريخ
                 return;
@@ -86,21 +108,12 @@ class StoreReservationRequest extends FormRequest
 
             $subserviceIds = $subserviceIds->unique()->filter()->toArray();
 
+
             $existing = Reservation::where('center_id', $this->center_id)
                 ->where('date', $reservationDate->toDateTimeString())
-                ->whereNotIn('status', ['cancelled', 'completed'])
-                ->where(function ($query) use ($subserviceIds) {
-                    // البحث في الخدمات المباشرة
-                    $query->whereHas('manageSubservices', function ($q) use ($subserviceIds) {
-                        $q->whereIn('manage_subservices.id', $subserviceIds);
-                    });
-
-                    // أو الحجوزات التي تحتوي على عروض تشمل الخدمات المطلوبة
-                    $query->orWhereHas('offers', function ($q) use ($subserviceIds) {
-                        $q->whereHas('manageSubservices', function ($subQ) use ($subserviceIds) {
-                            $subQ->whereIn('manage_subservices.id', $subserviceIds);
-                        });
-                    });
+                ->whereIn('status', ['processing', 'confirmed', 'partially_rejected'])
+                ->whereHas('manageSubservices', function ($q) use ($subserviceIds) {
+                    $q->whereIn('manage_subservices.id', $subserviceIds);
                 })
                 ->exists();
 
@@ -109,6 +122,4 @@ class StoreReservationRequest extends FormRequest
             }
         });
     }
-
-
 }

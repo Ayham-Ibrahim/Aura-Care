@@ -100,6 +100,7 @@ class ReservationService extends Service
     }
     public function getSubserviceWithTime(array $data)
     {
+        $is_offer = false;
         $center = Center::with('workingHours')->findOrFail($data['center_id']);
 
         if (!$center) {
@@ -111,6 +112,7 @@ class ReservationService extends Service
                 $this->throwExceptionJson('العرض غير موجود لنفس المركز', 422);
             }
             $data['manage_subservice'] = $offer->manageSubservices->pluck('id')->toArray();
+            $is_offer = true;
         }
 
         $selectedSubservices = ManageSubservice::with('subservice:id,name,image')
@@ -200,6 +202,7 @@ class ReservationService extends Service
             return [
                 'old_amount' => $oldAmount,
                 'new_amount' => $newAmount,
+                'is_offer' => $is_offer,
                 'subservices' => $subservicesData,
                 'available_times' => $availableTimes,
             ];

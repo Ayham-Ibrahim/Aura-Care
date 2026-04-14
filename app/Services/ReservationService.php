@@ -471,13 +471,22 @@ class ReservationService extends Service
             $this->throwExceptionJson('لا يمكن تقييم المركز إلا بعد اكتمال الحجز');
         }
 
+        // التحقق من أن المستخدم لم يقيّم هذا الحجز من قبل
+        $existingReview = Reviews::where('user_id', auth('sanctum')->id())
+            ->where('reservation_id', $reservation->id)
+            ->first();
+
+        if ($existingReview) {
+            $this->throwExceptionJson('لقد قمت بتقييم هذا الحجز مسبقاً');
+        }
+
         try {
             DB::beginTransaction();
 
-            Reviews::updateOrCreate([
+            Reviews::create([
                 'user_id' => auth('sanctum')->id(),
                 'center_id' => $center->id,
-            ], [
+                'reservation_id' => $reservation->id,
                 'rating' => $rating,
             ]);
 

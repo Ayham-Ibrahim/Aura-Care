@@ -13,6 +13,7 @@ class Reviews extends Model
     protected $fillable = [
         'user_id',
         'center_id',
+        'reservation_id',
         'rating',
     ];
 
@@ -28,5 +29,10 @@ class Reviews extends Model
     public function center()
     {
         return $this->belongsTo(Center::class);
+    }
+
+    public function reservation()
+    {
+        return $this->belongsTo(Reservation::class);
     }
 }

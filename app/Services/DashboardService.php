@@ -35,6 +35,8 @@ class DashboardService extends Service
             'manageSubservices:id,price',
         ])
             ->select('id', 'center_id', 'image', 'description', 'discount_value')
+            ->where('from', '<=', Carbon::now())
+            ->where('to', '>=', Carbon::now())
             ->get()
             ->map(function (Offer $offer) {
                 $center = $offer->center ? $offer->center->only(['id', 'name', 'logo', 'rating']) : null;

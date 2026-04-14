@@ -57,6 +57,28 @@ class StoreReservationRequest extends FormRequest
                 return;
             }
 
+            // التحقق من وقت العرض (from, to)
+            if ($hasOffers) {
+                $offer = Offer::find($this->offer);
+                if ($offer) {
+                    $now = now();
+                    $fromDate = $offer->from ? Carbon::parse($offer->from) : null;
+                    $toDate = $offer->to ? Carbon::parse($offer->to) : null;
+
+                    // التحقق من تاريخ البداية
+                    if ($fromDate && $now->lt($fromDate)) {
+                        $validator->errors()->add('offer', 'العرض غير متاح حالياً. يبدأ من ' . $fromDate->format('Y-m-d H:i'));
+                        return;
+                    }
+
+                    // التحقق من تاريخ النهاية
+                    if ($toDate && $now->gt($toDate)) {
+                        $validator->errors()->add('offer', 'العرض منتهي الصلاحية. انتهى في ' . $toDate->format('Y-m-d H:i'));
+                        return;
+                    }
+                }
+            }
+
             if (!$this->filled('date')) {
                 // يتحقق من القاعدة الأساسية في rules() ولا نكمل بدون تاريخ
                 return;

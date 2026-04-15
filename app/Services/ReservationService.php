@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Center\Center;
 use App\Models\ManageSubservice;
 use App\Models\Offer;
+use App\Models\Point;
 use App\Models\Reservation;
 use App\Models\Reviews;
 use App\Models\Wallet;
@@ -298,6 +299,11 @@ class ReservationService extends Service
     {
         $reservation = Reservation::with('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image')->findOrFail($id);
         $this->chackCenterAuth($reservation);
+        $userPoints = point::select('points')->where('user_id', $reservation->user_id)
+            ->where('center_id', $reservation->center_id)
+            ->first();
+
+        $reservation->user->user_points = $userPoints ? $userPoints->points : 0;
         return $reservation;
     }
 
@@ -308,19 +314,31 @@ class ReservationService extends Service
         return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
     }
 
-    public function reservationCompleted(Reservation $reservation)
+    public function reservationCompleted(Reservation $reservation,$data)
     {
         $this->chackCenterAuth($reservation);
         if ($reservation->status != 'processing') {
             $this->throwExceptionJson('لا يمكن تعديل حالة الحجز إلى مكتمل إلا إذا كان قيد المعالجة', 422);
         }
 
+        if($data['points'] > 0){
+            $point = Point::where('user_id', $reservation->user_id)
+                ->where('center_id', $reservation->center_id)
+                ->first();
+
+            if (!$point || $point->points < $data['points']) {
+                $this->throwExceptionJson('ليس لديك نقاط كافية لاستخدامها', 422);
+            }
+
+            $point->decrement('points', $data['points']);
+        }
         try {
 
             $profit_percentage = $reservation->center->section->profit_percentage;
             $amount = ($reservation->total_amount * $profit_percentage) / 100;
 
             DB::beginTransaction();
+            // $points = $this->addPointsToUser($reservation->user_id, $reservation->center_id, $reservation->id);
             $reservation->wallet()->updateOrCreate([
                 'reservation_id' => $reservation->id,
             ], [
@@ -566,5 +584,28 @@ class ReservationService extends Service
             Log::error('Error confirming reservation', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء تأكيد الحجز');
         }
+    }
+
+    public function addPointsToUser($user_id, $center_id, $reservation_id)
+    {
+        $points = ManageSubservice::whereHas('reservations', function ($q) use ($reservation_id) {
+            $q->where('reservations.id', $reservation_id);
+        })
+            ->where('activating_points', true)
+            ->where(function ($q) {
+                $q->where('from', '<=', Carbon::now())
+                    ->where('to', '>=', Carbon::now());
+            })
+            ->sum('points');
+
+        if ($points > 0) {
+            $point = Point::firstOrCreate(
+                ['user_id' => $user_id, 'center_id' => $center_id],
+                ['points' => 0]
+            );
+
+            $point->increment('points', $points);
+        }
+        return $points;
     }
 }

@@ -14,4 +14,4 @@ Artisan::command('inspire', function () {
 // Schedule::command(CheckExpiredPendingPaymentReservations::class)->everyMinute();
 
 // حذف العروض المنتهية يومياً في منتصف الليل
-Schedule::command(DeleteExpiredOffers::class)->daily();
+// Schedule::command(DeleteExpiredOffers::class)->daily();

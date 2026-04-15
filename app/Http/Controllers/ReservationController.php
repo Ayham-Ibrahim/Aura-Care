@@ -10,6 +10,7 @@ use App\Http\Requests\Reservation\StoreReservationRequest;
 use App\Http\Requests\Reservation\UpdateReservationRequest;
 use App\Http\Requests\Reservation\UpdateReservationStatusRequest;
 use App\Http\Requests\Reservation\ConfirmReservationRequest;
+use App\Http\Requests\Reservation\UserPointsRequest;
 use App\Models\Center\Center;
 use App\Models\Reservation;
 use App\Services\ReservationService;
@@ -104,9 +105,9 @@ class ReservationController extends Controller
         return $this->success($res, 'تم قبول الحجز بنجاح');
     }
 
-    public function reservationCompleted(Reservation $reservation)
+    public function reservationCompleted(Reservation $reservation, UserPointsRequest $request)
     {
-        $res = $this->reservationService->reservationCompleted($reservation);
+        $res = $this->reservationService->reservationCompleted($reservation,$request->validated());
         return $this->success($res, 'تم تعديل حالة الحجز');
     }
 

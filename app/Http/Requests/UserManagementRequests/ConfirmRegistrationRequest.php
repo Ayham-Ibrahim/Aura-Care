@@ -26,4 +26,15 @@ class ConfirmRegistrationRequest extends FormRequest
             'otp_code' => 'required|string|size:4'
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'phone.required' => 'رقم الهاتف مطلوب.',
+            'phone.string' => 'رقم الهاتف يجب أن يكون نصًا.',
+            'otp_code.required' => 'رمز التحقق مطلوب.',
+            'otp_code.string' => 'رمز التحقق يجب أن يكون نصًا.',
+            'otp_code.size' => 'رمز التحقق يجب أن يكون مكوناً من 4 أرقام.',
+        ];
+    }
 }

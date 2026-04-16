@@ -60,15 +60,15 @@ class UpdateUserProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'string' => 'حقل :attribute يجب أن يكون نصاً.',
-            'max' => 'حقل :attribute يجب ألا يتجاوز :max حرف/أحرف.',
-            'unique' => ':attribute مسجل مسبقاً.',
-            'min' => 'حقل :attribute يجب ألا يقل عن :min حرف/أحرف.',
-
-            'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
-            'in' => 'حقل :attribute يجب أن يكون أحد قيمتين ذكر أو أنثى',
-
-
+            'name.string' => 'اسم المستخدم يجب أن يكون نصًا.',
+            'name.max' => 'اسم المستخدم لا يجب أن يتجاوز 255 حرفًا.',
+            'phone.string' => 'رقم الواتساب يجب أن يكون نصًا.',
+            'phone.max' => 'رقم الواتساب لا يجب أن يتجاوز 255 حرفًا.',
+            'phone.unique' => 'رقم الواتساب مستخدم بالفعل.',
+            'avatar.image' => 'الصورة الشخصية يجب أن تكون صورة.',
+            'avatar.mimes' => 'الصورة الشخصية يجب أن تكون من نوع png, jpg, أو jpeg.',
+            'avatar.mimetypes' => 'الصورة الشخصية يجب أن تكون من نوع image/jpeg, image/png, أو image/jpg.',
+            'avatar.max' => 'حجم الصورة الشخصية لا يجب أن يتجاوز 5 ميجابايت.',
         ];
     }
     protected function failedAuthorization()

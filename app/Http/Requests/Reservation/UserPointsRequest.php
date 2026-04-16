@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Section;
+namespace App\Http\Requests\Reservation;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class updatePorfitPercentageRequest extends FormRequest
+class UserPointsRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,16 +22,14 @@ class updatePorfitPercentageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'profit_percentage' => 'sometimes|integer|min:0|max:100',
+            'points' => 'nullable|integer|min:0',
         ];
     }
-
     public function messages(): array
     {
         return [
-            'profit_percentage.integer' => 'نسبة الربح يجب أن تكون رقمًا صحيحًا.',
-            'profit_percentage.min' => 'نسبة الربح يجب أن تكون 0 أو أكثر.',
-            'profit_percentage.max' => 'نسبة الربح لا يجب أن تتجاوز 100.',
+            'points.integer' => 'يجب أن يكون عدد النقاط رقماً صحيحاً.',
+            'points.min' => 'يجب أن يكون عدد النقاط 0 أو أكثر.',
         ];
-    }
+    }   
 }

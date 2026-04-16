@@ -29,4 +29,16 @@ class UpdateCenterPaymentInfoRequest extends FormRequest
             'sham_image' => 'صورة الشام',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'sham_code.string' => 'رمز الشام يجب أن يكون نصًا.',
+            'sham_code.max' => 'رمز الشام لا يجب أن يتجاوز 255 حرفًا.',
+            'sham_image.image' => 'الملف المرفق يجب أن يكون صورة.',
+            'sham_image.mimes' => 'الملف المرفق يجب أن يكون من نوع png, jpg, jpeg.',
+            'sham_image.mimetypes' => 'الملف المرفق يجب أن يكون من نوع image/jpeg, image/png, image/jpg.',
+            'sham_image.max' => 'حجم الملف لا يجب أن يتجاوز 5 ميجابايت.',
+        ];
+    }
 }

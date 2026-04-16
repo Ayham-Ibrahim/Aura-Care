@@ -25,4 +25,13 @@ class updatePorfitPercentageRequest extends FormRequest
             'profit_percentage' => 'sometimes|integer|min:0|max:100',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'profit_percentage.integer' => 'نسبة الربح يجب أن تكون رقمًا صحيحًا.',
+            'profit_percentage.min' => 'نسبة الربح يجب أن تكون 0 أو أكثر.',
+            'profit_percentage.max' => 'نسبة الربح لا يجب أن تتجاوز 100.',
+        ];
+    }
 }

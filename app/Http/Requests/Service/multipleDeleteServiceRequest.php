@@ -26,4 +26,14 @@ class multipleDeleteServiceRequest extends FormRequest
             'ids.*' => 'integer|exists:services,id',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'ids.required' => 'قائمة المعرفات مطلوبة.',
+            'ids.array' => 'قائمة المعرفات يجب أن تكون مصفوفة.',
+            'ids.*.integer' => 'كل معرف يجب أن يكون رقمًا صحيحًا.',
+            'ids.*.exists' => 'واحد أو أكثر من المعرفات غير موجود.',
+        ];
+    }
 }

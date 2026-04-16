@@ -29,4 +29,19 @@ class StoreSectionRequest extends FormRequest
                         |max:5000',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'اسم القسم مطلوب.',
+            'name.string' => 'اسم القسم يجب أن يكون نصًا.',
+            'name.max' => 'اسم القسم لا يجب أن يتجاوز 255 حرفًا.',
+            'name.unique' => 'اسم القسم مستخدم بالفعل.',
+            'image.required' => 'صورة القسم مطلوبة.',
+            'image.image' => 'الملف المرفق يجب أن يكون صورة.',
+            'image.mimes' => 'الملف المرفق يجب أن يكون من نوع png, jpg, jpeg.',
+            'image.mimetypes' => 'الملف المرفق يجب أن يكون من نوع image/jpeg, image/png, image/jpg.',
+            'image.max' => 'حجم الملف لا يجب أن يتجاوز 5 ميجابايت.',
+        ];
+    }
 }

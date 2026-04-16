@@ -20,4 +20,15 @@ class StoreAdRequest extends FormRequest
                         |max:5000',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'image.required' => 'صورة الإعلان مطلوبة.',
+            'image.image' => 'الملف المرفق يجب أن يكون صورة.',
+            'image.mimes' => 'الملف المرفق يجب أن يكون من نوع png, jpg, jpeg.',
+            'image.mimetypes' => 'الملف المرفق يجب أن يكون من نوع image/jpeg, image/png, image/jpg.',
+            'image.max' => 'حجم الملف لا يجب أن يتجاوز 5 ميجابايت.',
+        ];
+    }
 }

@@ -22,13 +22,12 @@ class UserPointsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'points' => 'required|integer|min:0',
+            'points' => 'nullable|integer|min:0',
         ];
     }
     public function messages(): array
     {
         return [
-            'points.required' => 'يرجى إدخال عدد النقاط.',
             'points.integer' => 'يجب أن يكون عدد النقاط رقماً صحيحاً.',
             'points.min' => 'يجب أن يكون عدد النقاط 0 أو أكثر.',
         ];

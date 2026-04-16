@@ -317,11 +317,11 @@ class ReservationService extends Service
     public function reservationCompleted(Reservation $reservation,$data)
     {
         $this->chackCenterAuth($reservation);
-        if ($reservation->status != 'processing') {
-            $this->throwExceptionJson('لا يمكن تعديل حالة الحجز إلى مكتمل إلا إذا كان قيد المعالجة', 422);
-        }
+        // if ($reservation->status != 'processing') {
+        //     $this->throwExceptionJson('لا يمكن تعديل حالة الحجز إلى مكتمل إلا إذا كان قيد المعالجة', 422);
+        // }
 
-        if($data['points'] > 0){
+        if(isset($data['points']) && $data['points'] > 0){
             $point = Point::where('user_id', $reservation->user_id)
                 ->where('center_id', $reservation->center_id)
                 ->first();

@@ -195,6 +195,7 @@ class CenterService extends Service
     public function updateCenter(Center $center, array $data)
     {
         try {
+            DB::beginTransaction();
             $center->update([
                 'section_id' => $data['section_id'] ?? $center->section_id,
                 'name' => $data['name'] ?? $center->name,
@@ -209,10 +210,24 @@ class CenterService extends Service
 
             if (isset($data['services']) && is_array($data['services'])) {
                 $center->services()->sync($data['services']);
+
+                ManageSubservice::where('center_id', $center->id)->whereNotIn('subservice_id', function ($query) use ($data) {
+                    $query->select('id')->from('subservices')->whereIn('service_id', $data['services']);
+                })->delete();
+                
+                $subServices = Subservice::whereIn('service_id', $data['services'])->pluck('id')->toArray();
+                foreach ($subServices as $subServiceId) {
+                    ManageSubservice::firstOrCreate([
+                        'center_id' => $center->id,
+                        'subservice_id' => $subServiceId,
+                    ]);
+                }
             }
+            DB::commit();
 
             return $center;
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Error updating center', ['center_id' => $center->id, 'data' => $data, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('1حدث خطأ ما أثناء تعديل المركز');
         }

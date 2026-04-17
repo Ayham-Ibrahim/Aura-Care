@@ -39,10 +39,15 @@ class Center extends Model
         'sham_code',
         'phone_verified_at',
         'verification_status',
+        'is_active',
     ];
 
     protected $hidden = [
         'password',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function section()
@@ -111,6 +116,16 @@ class Center extends Model
     public function wallet()
     {
         return $this->hasOne(Wallet::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function isActive(): bool
+    {
+        return (bool) $this->is_active;
     }
 
     public function wallets()

@@ -44,6 +44,10 @@ class ReservationService extends Service
         // return $data;
         try {
             $user_id = Auth::guard('api')->id();
+            $center = Center::findOrFail($data['center_id']);
+            if (!$center->is_active) {
+                $this->throwExceptionJson('المركز غير متاح حالياً', 404);
+            }
 
             $totalAmount = 0;
             $discount_value = 0;
@@ -107,6 +111,10 @@ class ReservationService extends Service
 
         if (!$center) {
             $this->throwExceptionJson('المركز غير موجود', 404);
+        }
+
+        if (!$center->is_active) {
+            $this->throwExceptionJson('المركز غير متاح حالياً', 404);
         }
         if ($data['offer'] ?? false) {
             $offer = Offer::with('manageSubservices')->find($data['offer']);

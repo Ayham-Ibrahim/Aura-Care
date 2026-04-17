@@ -129,6 +129,7 @@ class WalletService extends Service
                 'today_value' => (float) Wallet::where('center_id', $center->id)
                     ->whereDate('created_at', $today)
                     ->sum('required_value'),
+                'is_active' => $center->is_active,
             ];
 
             $wallets = Wallet::with([

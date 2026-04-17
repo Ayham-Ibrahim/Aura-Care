@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\WalletController;
+use App\Http\Middleware\EnsureCenterIsActive;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 
 // Route::get('/user', function (Request $request) {
@@ -33,7 +34,7 @@ Route::post('register', [UserManagementController::class, 'register']);
 Route::post('confirm-registration', [UserManagementController::class, 'confirmRegistration']);
 
 // تسجيل الدخول والتأكيد
-Route::post('login', [UserManagementController::class, 'login'])->name('login');
+Route::post('login', [UserManagementController::class, 'login'])->middleware(EnsureCenterIsActive::class)->name('login');
 Route::post('confirm-login', [UserManagementController::class, 'confirmLogin']);
 Route::post('refresh', [UserManagementController::class, 'refreshToken']);
 
@@ -100,6 +101,7 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::get('centers/{center}/documents', [CenterController::class, 'getCenterDocuments']);
     Route::patch('centers/{center}/documents/accept', [CenterController::class, 'acceptCenterDocuments']);
     Route::patch('centers/{center}/documents/reject', [CenterController::class, 'rejectCenterDocuments']);
+    Route::patch('centers/{center}/toggle-active', [CenterController::class, 'toggleActive']);
     Route::get('centers/{center}/works', [CenterController::class, 'getWorks']);
     Route::get('wallets', [WalletController::class, 'getWalletForAdmin']);
     Route::get('wallets/{center}', [WalletController::class, 'getCenterWalletDetails']);
@@ -176,7 +178,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
 //  Center App 
 // ---------------------------
 
-Route::prefix('center')->middleware('auth:sanctum')->group(function () {
+Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     // Center Services
     Route::get('services', [CenterController::class, 'getServices']);
     Route::get('subservices/{service_id}', [CenterController::class, 'showSubservicesByService']);

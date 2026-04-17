@@ -53,6 +53,39 @@ class Reservation extends Model
         return $this->hasOne(Wallet::class);
     }
 
+    public function scopeForCenter($query, int $centerId)
+    {
+        return $query->where('center_id', $centerId);
+    }
+
+    public function scopeExcludePending($query)
+    {
+        return $query->where('status', '!=', 'pending');
+    }
+
+    public function scopeFilterStatus($query, ?string $status)
+    {
+        if (!$status) {
+            return $query;
+        }
+
+        return $query->where('status', $status);
+    }
+
+    public function scopeFilterDateRange($query, ?string $startDate, ?string $endDate = null)
+    {
+        if (!$startDate) {
+            return $query;
+        }
+
+        if (!$endDate) {
+            return $query->whereDate('date', $startDate);
+        }
+
+        return $query->whereDate('date', '>=', $startDate)
+            ->whereDate('date', '<=', $endDate);
+    }
+
     /**
      * حساب المبلغ المتبقي للدفع
      */

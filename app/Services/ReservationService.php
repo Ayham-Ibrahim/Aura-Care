@@ -215,14 +215,18 @@ class ReservationService extends Service
 
 
 
-    public function centerReservation()
+    public function centerReservation(array $filters = [])
     {
         try {
             $centerId = auth('center')->user()->id;
-            $reservations = Reservation::with('user:id,name,avatar')->select('id', 'center_id', 'user_id', 'total_amount', 'status', 'deposit_amount')
-                ->where('center_id', $centerId)
-                ->whereNot('status', 'pending')
+            $reservations = Reservation::with('user:id,name,avatar')
+                ->select('id', 'center_id', 'user_id', 'total_amount', 'status', 'deposit_amount', 'date')
+                ->forCenter($centerId)
+                ->excludePending()
+                ->filterStatus($filters['status'] ?? null)
+                ->filterDateRange($filters['start_date'] ?? null, $filters['end_date'] ?? null)
                 ->get();
+
             return $reservations;
         } catch (\Exception $e) {
             Log::error('Error fetching center reservations', ['error' => $e->getMessage()]);

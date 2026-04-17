@@ -10,6 +10,7 @@ use App\Http\Requests\Reservation\StoreReservationRequest;
 use App\Http\Requests\Reservation\UpdateReservationRequest;
 use App\Http\Requests\Reservation\UpdateReservationStatusRequest;
 use App\Http\Requests\Reservation\ConfirmReservationRequest;
+use App\Http\Requests\Reservation\GetCenterReservationsRequest;
 use App\Http\Requests\Reservation\UserPointsRequest;
 use App\Models\Center\Center;
 use App\Models\Reservation;
@@ -69,10 +70,10 @@ class ReservationController extends Controller
         return $this->success($center, 'تم تقييم المركز بنجاح');
     }
 
-    public function getCenterReservation()
+    public function getCenterReservation(GetCenterReservationsRequest $request)
     {
-        $reservation = $this->reservationService->centerReservation();
-        return $this->success($reservation,'تم الحصول على حجوزات المركز بنجاح ');
+        $reservation = $this->reservationService->centerReservation($request->validated());
+        return $this->success($reservation, 'تم الحصول على حجوزات المركز بنجاح');
     }
 
     public function getSubserviceWithTime(GetSubserviceWithTime $request)

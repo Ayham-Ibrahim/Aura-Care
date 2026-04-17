@@ -192,6 +192,8 @@ Route::prefix('center')->middleware('auth:sanctum')->group(function () {
     // Center Reservations
     Route::get('reservations', [ReservationController::class, 'getCenterReservation']);
     Route::get('reservations/{reservation}', [ReservationController::class, 'getReservationById']);
+    Route::get('reservations/{reservation}/payment-images', [ReservationController::class, 'getReservationpaymentImages']);
+    Route::delete('reservations/{image}/payment-images', [ReservationController::class, 'deletePaymentImage']);
     Route::patch('reservations/{reservation}/accept', [ReservationController::class, 'acceptReservation']);
     Route::patch('reservations/{reservation}/complete', [ReservationController::class, 'reservationCompleted']);
     Route::patch('reservations/{reservation}/incomplete', [ReservationController::class, 'ReservationIncomplete']);

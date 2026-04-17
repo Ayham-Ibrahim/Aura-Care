@@ -74,6 +74,7 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     // ---------------------------
     Route::prefix('users')->group(function () {
         Route::get('/', [UserManagementController::class, 'listUsers']);      // index
+        Route::get('/{user}/user-points', [UserManagementController::class, 'getUserPointsForAdmin']); // admin user points by center
         Route::get('/{id}', [UserManagementController::class, 'userDetails']); // show
         Route::delete('/{id}', [UserManagementController::class, 'deleteUser']); // delete
     });

@@ -16,6 +16,7 @@ use App\Http\Requests\UserManagementRequests\ConfirmForgotPasswordRequest;
 use App\Http\Requests\UserManagementRequests\UpdateUserProfileRequest;
 use App\Http\Requests\UserManagementRequests\UpdateUserLocationRequest;
 use App\Http\Requests\UserManagementRequests\UpdateUserPaymentInfoRequest;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class UserManagementController extends Controller
@@ -313,6 +314,15 @@ class UserManagementController extends Controller
     {
         $points = $this->service->getUserPoints();
         return $this->success($points, 'تم جلب جميع نقاط المستخدم بنجاح');
+    }
+
+    /**
+     * Admin: return user points grouped by center with center image and name.
+     */
+    public function getUserPointsForAdmin(User $user)
+    {
+        $points = $this->service->getUserPointsForAdmin($user);
+        return $this->success($points, 'تم جلب نقاط المستخدم');
     }
 
     /**

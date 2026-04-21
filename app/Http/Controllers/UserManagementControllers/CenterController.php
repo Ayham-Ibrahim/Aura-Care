@@ -212,6 +212,15 @@ class CenterController extends Controller
     }
 
     /**
+     * Administrator helper – toggle center active status.
+     */
+    public function toggleActive(Center $center)
+    {
+        $center = $this->centerService->toggleCenterActive($center);
+        return $this->success($center->only(['id', 'is_active']), 'تم تعديل حالة المركز بنجاح');
+    }
+
+    /**
      * Administrator helper – all managed subservices that have points.
      */
     public function getSubservicesHasPoints()

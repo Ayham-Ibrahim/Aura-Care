@@ -26,6 +26,7 @@ class UserController extends Controller
     {
         $user = Auth::user();
         $centers = $user->favoriteCenters()
+            ->where('centers.is_active', true)
             ->select('centers.id', 'rating', 'name', 'logo')
             ->get()
             ->makeHidden('pivot');
@@ -58,6 +59,10 @@ class UserController extends Controller
      */
     public function centerDetails(Center $center)
     {
+        if (!$center->is_active) {
+            return $this->notFoundResponse('المركز غير متاح حالياً');
+        }
+
         // reuse service to build basic data
         $data = $this->userService->getCenterDetailForUser($center);
         return $this->success($data, 'تم جلب بيانات المركز بنجاح');
@@ -71,6 +76,10 @@ class UserController extends Controller
      */
     public function getSubservicesForUser(Center $center, $service)
     {
+        if (!$center->is_active) {
+            return $this->notFoundResponse('المركز غير متاح حالياً');
+        }
+
         $subs = $this->userService->getSubservices($center->id, $service);
         return $this->success($subs, 'تم الحصول على الخدمات الفرعية النشطة للمركز بنجاح');
     }
@@ -81,6 +90,11 @@ class UserController extends Controller
      */
     public function getWorksByServiceForUser($center, $service)
     {
+        $centerModel = Center::find($center);
+        if (!$centerModel || !$centerModel->is_active) {
+            return $this->notFoundResponse('المركز غير متاح حالياً');
+        }
+
         $works = $this->userService->getCenterWorks($center, $service);
         return $this->success($works, 'تم الحصول على أعمال المركز للخدمة المحددة بنجاح');
     }

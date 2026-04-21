@@ -37,6 +37,9 @@ class DashboardService extends Service
             ->select('id', 'center_id', 'image', 'description', 'discount_value')
             ->where('from', '<=', Carbon::now())
             ->where('to', '>=', Carbon::now())
+            ->whereHas('center', function ($query) {
+                $query->where('is_active', true);
+            })
             ->get()
             ->map(function (Offer $offer) {
                 $center = $offer->center ? $offer->center->only(['id', 'name', 'logo', 'rating']) : null;
@@ -64,7 +67,7 @@ class DashboardService extends Service
 
     protected function fetchCenters()
     {
-        return Center::select('id', 'name', 'logo')->get();
+        return Center::active()->select('id', 'name', 'logo')->get();
     }
 
     protected function fetchSubservicesHasPoints()
@@ -75,6 +78,9 @@ class DashboardService extends Service
         ])
             ->select('id', 'center_id', 'subservice_id', 'points', 'from', 'to')
             ->where('activating_points', 1)
+            ->whereHas('center', function ($query) {
+                $query->where('is_active', true);
+            })
             ->where('from', '<=', Carbon::now())
             ->where('to', '>=', Carbon::now())
             ->get();

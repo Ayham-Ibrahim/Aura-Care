@@ -398,6 +398,17 @@ class UserManagementService extends Service
         return $user->points()->with('center:id,name,logo')->get();
     }
 
+    /**
+     * Summary of getUserPointsForAdmin
+     * @param mixed $user
+     */
+    public function getUserPointsForAdmin(User $user)
+    {
+        $user->load([
+            'points.center:id,name,logo'
+        ]);
+        return $user->points;
+    }
 
     /**
      * نسيان كلمة المرور - إرسال OTP فقط

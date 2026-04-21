@@ -135,6 +135,17 @@ class CenterService extends Service
         return $this->updateCenterVerificationStatus($center, 'rejected');
     }
 
+    public function toggleCenterActive(Center $center)
+    {
+        try {
+            $center->update(['is_active' => !$center->is_active]);
+            return $center;
+        } catch (\Exception $e) {
+            Log::error('Error toggling center active status', ['center_id' => $center->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل حالة المركز');
+        }
+    }
+
     protected function updateCenterVerificationStatus(Center $center, string $status)
     {
         try {
@@ -214,7 +225,7 @@ class CenterService extends Service
                 ManageSubservice::where('center_id', $center->id)->whereNotIn('subservice_id', function ($query) use ($data) {
                     $query->select('id')->from('subservices')->whereIn('service_id', $data['services']);
                 })->delete();
-                
+
                 $subServices = Subservice::whereIn('service_id', $data['services'])->pluck('id')->toArray();
                 foreach ($subServices as $subServiceId) {
                     ManageSubservice::firstOrCreate([
@@ -388,7 +399,8 @@ class CenterService extends Service
      */
     public function listCentersBasic()
     {
-        return Center::select('id', 'name', 'logo')
+        return Center::active()
+            ->select('id', 'name', 'logo')
             ->get();
     }
 
@@ -499,7 +511,8 @@ class CenterService extends Service
     {
         try {
 
-            return Center::select('id', 'name', 'logo')
+            return Center::active()
+                ->select('id', 'name', 'logo')
                 ->whereHas('services', function ($q) use ($service) {
                     $q->where('service_id', $service->id);
                 })
@@ -514,7 +527,8 @@ class CenterService extends Service
     {
         try {
 
-            return Center::select('id', 'name', 'logo')
+            return Center::active()
+                ->select('id', 'name', 'logo')
                 ->where('section_id', $section->id)
                 ->get();
         } catch (\Exception $e) {

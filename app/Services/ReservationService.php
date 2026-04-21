@@ -7,6 +7,7 @@ use App\Models\ManageSubservice;
 use App\Models\Offer;
 use App\Models\Point;
 use App\Models\Reservation;
+use App\Models\ReservationPaymentImage;
 use App\Models\Reviews;
 use App\Models\Wallet;
 use App\Services\FileStorage;
@@ -43,6 +44,10 @@ class ReservationService extends Service
         // return $data;
         try {
             $user_id = Auth::guard('api')->id();
+            $center = Center::findOrFail($data['center_id']);
+            if (!$center->is_active) {
+                $this->throwExceptionJson('المركز غير متاح حالياً', 404);
+            }
 
             $totalAmount = 0;
             $discount_value = 0;
@@ -106,6 +111,10 @@ class ReservationService extends Service
 
         if (!$center) {
             $this->throwExceptionJson('المركز غير موجود', 404);
+        }
+
+        if (!$center->is_active) {
+            $this->throwExceptionJson('المركز غير متاح حالياً', 404);
         }
         if ($data['offer'] ?? false) {
             $offer = Offer::with('manageSubservices')->find($data['offer']);
@@ -215,14 +224,18 @@ class ReservationService extends Service
 
 
 
-    public function centerReservation()
+    public function centerReservation(array $filters = [])
     {
         try {
             $centerId = auth('center')->user()->id;
-            $reservations = Reservation::with('user:id,name,avatar')->select('id', 'center_id', 'user_id', 'total_amount', 'status', 'deposit_amount')
-                ->where('center_id', $centerId)
-                ->whereNot('status', 'pending')
+            $reservations = Reservation::with('user:id,name,avatar')
+                ->select('id', 'center_id', 'user_id', 'total_amount', 'status', 'deposit_amount', 'date')
+                ->forCenter($centerId)
+                ->excludePending()
+                ->filterStatus($filters['status'] ?? null)
+                ->filterDateRange($filters['start_date'] ?? null, $filters['end_date'] ?? null)
                 ->get();
+
             return $reservations;
         } catch (\Exception $e) {
             Log::error('Error fetching center reservations', ['error' => $e->getMessage()]);
@@ -295,9 +308,9 @@ class ReservationService extends Service
         }
     }
 
-    public function ReservationById($id)
+    public function ReservationById(Reservation $reservation)
     {
-        $reservation = Reservation::with('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image')->findOrFail($id);
+        $reservation->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
         $this->chackCenterAuth($reservation);
         $userPoints = point::select('points')->where('user_id', $reservation->user_id)
             ->where('center_id', $reservation->center_id)
@@ -307,6 +320,26 @@ class ReservationService extends Service
         return $reservation;
     }
 
+    public function getReservationPaymentImages(Reservation $reservation)
+    {
+        $this->chackCenterAuth($reservation);
+        try {
+            $images = $reservation->paymentImages()->select('id', 'image_path')->get();
+            return $images;
+        } catch (\Exception $e) {
+            Log::error('Error fetching reservation payment images', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب صور الدفع الخاصة بالحجز');
+        }
+    }
+
+    public function deletePaymentImage(ReservationPaymentImage $image)
+    {
+        $reservation = $image->reservation;
+        $this->chackCenterAuth($reservation);
+        $image->delete();
+        return true;
+    }
+
     public function acceptReservation(Reservation $reservation)
     {
         $this->chackCenterAuth($reservation);
@@ -314,14 +347,14 @@ class ReservationService extends Service
         return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
     }
 
-    public function reservationCompleted(Reservation $reservation,$data)
+    public function reservationCompleted(Reservation $reservation, $data)
     {
         $this->chackCenterAuth($reservation);
-        // if ($reservation->status != 'processing') {
-        //     $this->throwExceptionJson('لا يمكن تعديل حالة الحجز إلى مكتمل إلا إذا كان قيد المعالجة', 422);
-        // }
+        if ($reservation->status != 'processing') {
+            $this->throwExceptionJson('لا يمكن تعديل حالة الحجز إلى مكتمل إلا إذا كان قيد المعالجة', 422);
+        }
 
-        if(isset($data['points']) && $data['points'] > 0){
+        if (isset($data['points']) && $data['points'] > 0) {
             $point = Point::where('user_id', $reservation->user_id)
                 ->where('center_id', $reservation->center_id)
                 ->first();
@@ -573,14 +606,21 @@ class ReservationService extends Service
         $this->chackUserAuth($reservation);
 
         try {
+            $imagePath = FileStorage::storeFile($data['image'], 'reservations/payments', 'img');
+            DB::beginTransaction();
+            $reservation->paymentImages()->create([
+                'image_path' => $imagePath,
+            ]);
+
             $reservation->update([
-                'payment_image' => FileStorage::storeFile($data['image'], 'reservations/payments', 'img'),
                 'status' => 'confirmed',
                 'rejection_time' => null, // مسح وقت الرفض
             ]);
+            DB::commit();
 
-            return $reservation;
+            return $reservation->load('paymentImages');
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Error confirming reservation', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء تأكيد الحجز');
         }

@@ -453,8 +453,16 @@ class CenterService extends Service
         $center = Auth::guard('center')->user();
         $manage_subservice = $center->manageSubservices()->where('subservice_id', $data['subservice_id'])->first();
 
+        // if (!$manage_subservice) {
+        //     $this->throwExceptionJson('الخدمة الفرعية غير موجودة للمركز');
+        // }
+
         if (!$manage_subservice) {
-            $this->throwExceptionJson('الخدمة الفرعية غير موجودة للمركز');
+            ManageSubservice::firstOrCreate([
+                'center_id' => $center->id,
+                'subservice_id' => $data['subservice_id'],
+            ]);
+            $manage_subservice = $center->manageSubservices()->where('subservice_id', $data['subservice_id'])->first();
         }
 
         try {

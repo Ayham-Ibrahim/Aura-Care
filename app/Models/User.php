@@ -79,6 +79,18 @@ class User extends Authenticatable
     public function favoriteCenters()
     {
         return $this->belongsToMany(\App\Models\Center\Center::class, 'center_user')
-                    ->withTimestamps();
+            ->withTimestamps();
+    }
+
+    /**
+     * Register or update FCM token.
+     * Drivers only support single device - previous device will be replaced.
+     *
+     * @param string $fcmToken
+     * @return Device
+     */
+    public function registerDevice(string $fcmToken): Device
+    {
+        return Device::registerSingleDevice($this, $fcmToken);
     }
 }

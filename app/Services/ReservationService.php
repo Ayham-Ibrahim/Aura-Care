@@ -19,6 +19,12 @@ use Illuminate\Support\Facades\Log;
 
 class ReservationService extends Service
 {
+
+    protected $notificationService;
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     public function getAllReservations($perPage)
     {
         $reservations = Reservation::select('id', 'center_id', 'user_id', 'status', 'date')
@@ -344,6 +350,7 @@ class ReservationService extends Service
     {
         $this->chackCenterAuth($reservation);
         $res = $this->updateReservationStatus($reservation, 'processing');
+        $this->notificationService->notiReservationAcceptForUser($res);
         return $res->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
     }
 
@@ -449,6 +456,9 @@ class ReservationService extends Service
 
         try {
             $reservation->update(['is_return' => true]);
+            
+            $this->notificationService->notiReservationDepositRefundForUser($reservation);
+
             return $reservation;
         } catch (\Exception $e) {
             Log::error('Error confirming deposit refund', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
@@ -473,6 +483,8 @@ class ReservationService extends Service
                 'rejection_time' => now(),
                 'reason_for_cancellation' => $data['reason'] ?? null,
             ]);
+
+            $this->notificationService->notiReservationRejectForUser($reservation);
 
             // return $reservation->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
             return $reservation;
@@ -502,6 +514,11 @@ class ReservationService extends Service
                 'reason_for_cancellation' => $data['reason'],
             ]);
             DB::commit();
+
+            $this->notificationService->notiReservationCancellForCenter($reservation);
+            $this->notificationService->notiReservationCancellForUser($reservation);
+
+
             return $reservation;
         } catch (\Exception $e) {
             DB::rollBack();
@@ -617,6 +634,9 @@ class ReservationService extends Service
                 'rejection_time' => null, // مسح وقت الرفض
             ]);
             DB::commit();
+
+            $this->notificationService->notiReservationCreateForCenter($reservation);
+            $this->notificationService->notiReservationCreateForUser($reservation);
 
             return $reservation->load('paymentImages');
         } catch (\Exception $e) {

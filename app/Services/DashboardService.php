@@ -8,11 +8,14 @@ use App\Models\ManageSubservice;
 use App\Models\Offer;
 use App\Models\Section;
 use App\Models\Service;
+use App\Traits\DistanceTrait;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class DashboardService extends Service
 {
+    use DistanceTrait;
     /**
      * Get home page dashboard data and cache it in database store.
      *
@@ -32,10 +35,10 @@ class DashboardService extends Service
     protected function fetchOffers()
     {
         return Offer::with([
-            'center:id,name,logo,rating',
+            'center:id,name,logo,rating,location_v,location_h',
             'manageSubservices:id,price',
         ])
-            ->select('id', 'center_id', 'image', 'description', 'discount_value')
+            ->select('id', 'center_id', 'image', 'description', 'discount_value', 'from', 'to', 'discount_percentage')
             ->where('from', '<=', Carbon::now())
             ->where('to', '>=', Carbon::now())
             ->whereHas('center', function ($query) {
@@ -43,15 +46,24 @@ class DashboardService extends Service
             })
             ->get()
             ->map(function (Offer $offer) {
-                $center = $offer->center ? $offer->center->only(['id', 'name', 'logo', 'rating']) : null;
+                $center = $offer->center ? $offer->center : null;
                 $price = $offer->manageSubservices->sum('price') - $offer->discount_value;
+                $distance = null;
+
+                 if (Auth::check() && $center) {
+                    $distance = $this->calculateDistance(Auth::user(), $center);
+                }
                 return [
                     'id' => $offer->id,
                     'image' => $offer->image,
                     'description' => $offer->description,
                     'price' => $price,
                     'old_price' => $offer->manageSubservices->sum('price'),
-                    'center' => $center,
+                    'discount_percentage' => $offer->discount_percentage,
+                    'from' => $offer->from,
+                    'to' => $offer->to,
+                    'distance' => $distance,
+                    'center' => $center->only(['id', 'name', 'logo', 'rating']),
                 ];
             });
     }

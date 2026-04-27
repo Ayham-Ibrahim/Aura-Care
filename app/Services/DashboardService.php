@@ -7,6 +7,7 @@ use App\Models\Center\Center;
 use App\Models\ManageSubservice;
 use App\Models\Offer;
 use App\Models\Section;
+use App\Models\Service;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -100,4 +101,19 @@ class DashboardService extends Service
             ];
         });
     }
+
+        public function getAllServices()
+        {
+            return Service::select('id', 'name', 'image', 'section_id')->with('section:id,name,image')->get();
+        }
+
+        public function getAllSections()
+        {
+            return Section::with('services')->select('id', 'name', 'image')->get();
+        }
+
+        public function getOffers()
+        {
+            return $this->fetchOffers();
+        }
 }

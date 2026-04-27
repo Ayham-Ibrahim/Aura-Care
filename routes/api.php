@@ -171,7 +171,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('centers/section/{section}', [CenterController::class, 'getCentersBySection']);
 
     // Dashboard home page with cached data
-    Route::get('home', [DashboardController::class, 'index']);
+    // Route::get('home', [DashboardController::class, 'index']);
 
     // User device (multi-device support)
     Route::post('/device/register', [DeviceController::class, 'registerUserDevice']);
@@ -241,3 +241,10 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::post('/device/register', [DeviceController::class, 'registerCenterDevice']);
     Route::post('/device/unregister', [DeviceController::class, 'removeCenterDevice']);
 });
+
+
+    Route::get('visitor/services', [DashboardController::class, 'getAllsevices']);
+    Route::get('visitor/sections', [DashboardController::class, 'getAllSection']);
+    Route::get('visitor/offers', [DashboardController::class, 'getOffers']);
+    Route::get('home', [DashboardController::class, 'index']);
+

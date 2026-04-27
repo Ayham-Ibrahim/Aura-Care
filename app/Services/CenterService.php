@@ -12,7 +12,9 @@ use App\Models\Subservice;
 use App\Models\ManageSubservice;
 use App\Models\Section;
 use App\Models\Service as ServiceModel;
+use App\Models\User;
 use App\Services\FileStorage;
+use App\Traits\DistanceTrait;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -22,6 +24,7 @@ use function Symfony\Component\Clock\now;
 
 class CenterService extends Service
 {
+    use DistanceTrait;
     protected $workingHourService;
 
     public function __construct(WorkingHourService $workingHourService)
@@ -564,13 +567,8 @@ class CenterService extends Service
                 // return $center;
                 $distance = null;
 
-                if ($user && $user->v_location !== null && $user->h_location !== null && $center && $center->location_v !== null && $center->location_h !== null) {
-                    $distance = $this->calculateDistance(
-                        $user->v_location,
-                        $user->h_location,
-                        $center->location_v,
-                        $center->location_h
-                    );
+                if ($user && $center) {
+                    $distance = $this->calculateDistance($user, $center);
                 }
 
                 return [
@@ -588,28 +586,5 @@ class CenterService extends Service
         }
     }
 
-    protected function calculateDistance(?float $latFrom, ?float $lonFrom, ?float $latTo, ?float $lonTo): ?float
-    {
-        if ($latFrom === null || $lonFrom === null || $latTo === null || $lonTo === null) {
-            return null;
-        }
 
-        $earthRadiusKm = 6371;
-
-        $latFromRad = deg2rad($latFrom);
-        $lonFromRad = deg2rad($lonFrom);
-        $latToRad = deg2rad($latTo);
-        $lonToRad = deg2rad($lonTo);
-
-        $latDelta = $latToRad - $latFromRad;
-        $lonDelta = $lonToRad - $lonFromRad;
-
-        $a = sin($latDelta / 2) * sin($latDelta / 2)
-            + cos($latFromRad) * cos($latToRad)
-            * sin($lonDelta / 2) * sin($lonDelta / 2);
-
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        return round($earthRadiusKm * $c, 2);
-    }
 }

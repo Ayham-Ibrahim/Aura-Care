@@ -171,7 +171,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('centers/section/{section}', [CenterController::class, 'getCentersBySection']);
 
     // Dashboard home page with cached data
-    // Route::get('home', [DashboardController::class, 'index']);
+    Route::get('home', [DashboardController::class, 'index']);
 
     // User device (multi-device support)
     Route::post('/device/register', [DeviceController::class, 'registerUserDevice']);

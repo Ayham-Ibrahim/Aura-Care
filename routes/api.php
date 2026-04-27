@@ -170,6 +170,10 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('centers/service/{service}', [CenterController::class, 'getCentersByService']);
     Route::get('centers/section/{section}', [CenterController::class, 'getCentersBySection']);
 
+    Route::get('subservice/service/{service}', [SubserviceController::class, 'getSubservicesByServiceForUser']);
+    Route::get('center/subservice/{subservice}', [CenterController::class, 'getCentersBySubservice']);
+
+
     // Dashboard home page with cached data
     Route::get('home', [DashboardController::class, 'index']);
 
@@ -246,5 +250,4 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::get('visitor/services', [DashboardController::class, 'getAllsevices']);
     Route::get('visitor/sections', [DashboardController::class, 'getAllSection']);
     Route::get('visitor/offers', [DashboardController::class, 'getOffers']);
-    Route::get('home', [DashboardController::class, 'index']);
 

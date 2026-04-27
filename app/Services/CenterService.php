@@ -544,4 +544,72 @@ class CenterService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالقسم');
         }
     }
+
+    public function getCentersBySubservice(Subservice $subservice)
+    {
+        try {
+            $user = Auth::guard('api')->user();
+            // return $user;
+            $subservices = ManageSubservice::select('id', 'price', 'subservice_id', 'center_id')
+                ->whereHas('center', function ($q) {
+                    $q->active();
+                })
+                ->where('subservice_id', $subservice->id)
+                ->where('is_active', 1)
+                ->with(['center:id,name,logo,rating,location_h,location_v'])
+                ->get();
+
+            return $subservices->map(function (ManageSubservice $manageSubservice) use ($user) {
+                $center = $manageSubservice->center;
+                // return $center;
+                $distance = null;
+
+                if ($user && $user->v_location !== null && $user->h_location !== null && $center && $center->location_v !== null && $center->location_h !== null) {
+                    $distance = $this->calculateDistance(
+                        $user->v_location,
+                        $user->h_location,
+                        $center->location_v,
+                        $center->location_h
+                    );
+                }
+
+                return [
+                    'id' => $manageSubservice->id,
+                    'price' => $manageSubservice->price,
+                    'subservice_id' => $manageSubservice->subservice_id,
+                    'center_id' => $manageSubservice->center_id,
+                    'distance_km' => $distance,
+                    'center' => $center->only(['id', 'name', 'logo', 'rating'])
+                ];
+            });
+        } catch (\Exception $e) {
+            Log::error('Error fetching centers by subservice', ['subservice' => $subservice, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالخدمة الفرعية');
+        }
+    }
+
+    protected function calculateDistance(?float $latFrom, ?float $lonFrom, ?float $latTo, ?float $lonTo): ?float
+    {
+        if ($latFrom === null || $lonFrom === null || $latTo === null || $lonTo === null) {
+            return null;
+        }
+
+        $earthRadiusKm = 6371;
+
+        $latFromRad = deg2rad($latFrom);
+        $lonFromRad = deg2rad($lonFrom);
+        $latToRad = deg2rad($latTo);
+        $lonToRad = deg2rad($lonTo);
+
+        $latDelta = $latToRad - $latFromRad;
+        $lonDelta = $lonToRad - $lonFromRad;
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2)
+            + cos($latFromRad) * cos($latToRad)
+            * sin($lonDelta / 2) * sin($lonDelta / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return round($earthRadiusKm * $c, 2);
+    }
 }

@@ -12,9 +12,11 @@ use App\Models\Subservice;
 use App\Models\ManageSubservice;
 use App\Models\Section;
 use App\Models\Service as ServiceModel;
+use App\Models\Offer;
 use App\Models\User;
 use App\Services\FileStorage;
 use App\Traits\DistanceTrait;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -552,21 +554,43 @@ class CenterService extends Service
     {
         try {
             $user = Auth::guard('api')->user();
-            // return $user;
             $subservices = ManageSubservice::select('id', 'price', 'subservice_id', 'center_id')
                 ->whereHas('center', function ($q) {
                     $q->active();
                 })
                 ->where('subservice_id', $subservice->id)
                 ->where('is_active', 1)
-                ->with(['center:id,name,logo,rating,location_h,location_v'])
+                ->with([
+                    'center:id,name,logo,rating,location_h,location_v',
+                    'offers' => function ($query) {
+                        $query->with('manageSubservices')->select('offers.id as id', 'from', 'to')
+                            ->where('from', '<=', Carbon::now())
+                            ->where('to', '>=', Carbon::now())
+                        ;
+                    }
+
+
+                ])
                 ->get();
+            // return $subservices;
 
             return $subservices->map(function (ManageSubservice $manageSubservice) use ($user) {
-                $center = $manageSubservice->center;
-                // return $center;
-                $distance = null;
 
+
+                //offer
+                $offer = $manageSubservice->offers->map(function ($offer) use ($manageSubservice) {
+                    $count = $offer->manageSubservices->count();
+                    if($count == 1) {
+                        return $offer;
+                    }
+                })->filter()->first();
+                $has_offer = false;
+                if ($offer) {
+                    $has_offer = true;
+                }
+
+                $center = $manageSubservice->center;
+                $distance = null;
                 if ($user && $center) {
                     $distance = $this->calculateDistance($user, $center);
                 }
@@ -577,7 +601,9 @@ class CenterService extends Service
                     'subservice_id' => $manageSubservice->subservice_id,
                     'center_id' => $manageSubservice->center_id,
                     'distance_km' => $distance,
-                    'center' => $center->only(['id', 'name', 'logo', 'rating'])
+                    'has_offer' => $has_offer,
+                    'offer_id' => $has_offer ? $offer->id : null,
+                    'center' => $center->only(['id', 'name', 'logo', 'rating']),
                 ];
             });
         } catch (\Exception $e) {
@@ -585,6 +611,4 @@ class CenterService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالخدمة الفرعية');
         }
     }
-
-
 }

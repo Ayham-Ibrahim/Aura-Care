@@ -56,9 +56,15 @@ class SubserviceController extends Controller
         return $this->success(null, 'تم حذف الخدمة الفرعية بنجاح', 204);
     }
 
-            public function multipleDelete(multipleDeleteSubserviceRequest $request)
+    public function multipleDelete(multipleDeleteSubserviceRequest $request)
     {
         $this->subserviceService->deleteMultipleSubservices($request->validated());
-        return $this->success(null,'تم حذف الخدمات الفرعية بنجاح',204);
+        return $this->success(null, 'تم حذف الخدمات الفرعية بنجاح', 204);
+    }
+
+    public function getSubservicesByServiceForUser($serviceId)
+    {
+        $subservices = $this->subserviceService->getSubservicesByServiceForUser($serviceId);
+        return $this->success($subservices, 'تم جلب الخدمات الفرعية بنجاح');
     }
 }

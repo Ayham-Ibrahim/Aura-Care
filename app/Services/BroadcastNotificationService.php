@@ -28,7 +28,7 @@ class BroadcastNotificationService extends Service
         ]);
 
         // Dispatch to queue for async processing
-        // SendBroadcastNotification::dispatch($notification);
+        SendBroadcastNotification::dispatch($notification);
 
         return $notification;
     }

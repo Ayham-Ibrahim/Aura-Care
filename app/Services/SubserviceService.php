@@ -89,4 +89,11 @@ class SubserviceService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء حذف الخدمات الفرعية');
         }
     }
+
+    public function getSubservicesByServiceForUser($serviceId)
+    {
+        return Subservice::where('service_id', $serviceId)
+            ->select('id', 'name', 'image')
+            ->get();
+    }
 }

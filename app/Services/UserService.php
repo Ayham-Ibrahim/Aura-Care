@@ -5,11 +5,13 @@ namespace App\Services;
 use App\Models\Center\Center;
 use App\Models\Center\Work;
 use App\Models\Subservice;
+use App\Traits\DistanceTrait;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class UserService extends Service
 {
+    use DistanceTrait;
     /**
      * Retrieve detailed data for a center intended for user view.
      *
@@ -39,6 +41,8 @@ class UserService extends Service
         $basic['works'] =  $center->works->map(function ($work) {
             return $work->service;
         });
+
+        $basic['distance'] = $this->calculateDistance(Auth::guard('api')->user(), $center);
 
         return $basic;
     }

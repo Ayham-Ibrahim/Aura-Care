@@ -12,6 +12,7 @@ use App\Http\Controllers\UserManagementControllers\CenterController;
 use App\Http\Controllers\UserManagementControllers\UserController;
 use App\Http\Controllers\UserManagementControllers\UserManagementController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DeviceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OfferController;
@@ -169,8 +170,16 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('centers/service/{service}', [CenterController::class, 'getCentersByService']);
     Route::get('centers/section/{section}', [CenterController::class, 'getCentersBySection']);
 
+    Route::get('subservice/service/{service}', [SubserviceController::class, 'getSubservicesByServiceForUser']);
+    Route::get('center/subservice/{subservice}', [CenterController::class, 'getCentersBySubservice']);
+
+
     // Dashboard home page with cached data
     Route::get('home', [DashboardController::class, 'index']);
+
+    // User device (multi-device support)
+    Route::post('/device/register', [DeviceController::class, 'registerUserDevice']);
+    Route::post('/device/unregister', [DeviceController::class, 'removeUserDevice']);
 });
 
 
@@ -200,11 +209,11 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::patch('reservations/{reservation}/complete', [ReservationController::class, 'reservationCompleted']);
     Route::patch('reservations/{reservation}/incomplete', [ReservationController::class, 'ReservationIncomplete']);
     Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'rejectReservation']);
-    
+
     Route::get('reservations/{reservation}/user', [ReservationController::class, 'getReservationUserInfo']);
     Route::patch('reservations/{reservation}/confirm-deposit-refund', [ReservationController::class, 'confirmDepositRefund']);
-   
-   
+
+
     Route::get('wallet', [WalletController::class, 'getWalletForCenter']);
 
     // Center working hours (24/7 default, editable by center)
@@ -230,4 +239,15 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::post('offers', [OfferController::class, 'storeOffer']);
     Route::delete('offers/{offer}', [OfferController::class, 'destroyOffer']);
     Route::get('offers/active-subservices', [OfferController::class, 'getActiveSubservice']);
+
+
+    // Center device (single-device support)
+    Route::post('/device/register', [DeviceController::class, 'registerCenterDevice']);
+    Route::post('/device/unregister', [DeviceController::class, 'removeCenterDevice']);
 });
+
+
+    Route::get('visitor/services', [DashboardController::class, 'getAllsevices']);
+    Route::get('visitor/sections', [DashboardController::class, 'getAllSection']);
+    Route::get('visitor/offers', [DashboardController::class, 'getOffers']);
+

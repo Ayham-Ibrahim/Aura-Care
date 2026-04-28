@@ -18,4 +18,23 @@ class DashboardController extends Controller
         $data = $this->dashboardService->getHomePageData();
         return $this->success($data, 'تم جلب بيانات الصفحة الرئيسية بنجاح');
     }
+
+    public function getAllsevices()
+    {
+        $services = $this->dashboardService->getAllServices();
+        return $this->success($services, 'تم جلب جميع الخدمات بنجاح');
+    }
+
+    public function getAllSection()
+    {
+        $sections = $this->dashboardService->getAllSections();
+        return $this->success($sections, 'تم جلب جميع الأقسام بنجاح');
+    }
+
+    public function getOffers()
+    {
+        $offers = $this->dashboardService->getOffers();
+        return $this->success($offers, 'تم جلب العروض بنجاح');
+    }
 }
+

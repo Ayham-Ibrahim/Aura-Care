@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Center\Center;
 use App\Models\Device;
 use App\Models\Driver;
 use App\Models\Store;
 use App\Models\Notification;
-use App\Models\UserManagement\User;
+use App\Models\User;
 use App\Models\UserManagement\Provider;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
@@ -29,7 +30,7 @@ class FcmService
     protected function initConfig()
     {
         $this->firebaseProjectId = config('services.firebase.project_id');
-        $this->credentialsPath = storage_path('app/quick-9b4d4-firebase-adminsdk-fbsvc-2b7bc9ed65.json');
+        $this->credentialsPath = config('services.firebase.credentialsPath');
     }
 
     /**
@@ -124,88 +125,23 @@ class FcmService
     /**
      * Send notification to a Driver (single device).
      *
-     * @param Driver $driver
+     * @param Center $center
      * @param string $title
      * @param string $body
      * @param array $data
      * @return bool
      */
-    public function sendToDriver(Driver $driver, string $title, string $body, array $data = []): bool
+    public function sendToCenter(Center $center, string $title, string $body, array $data = []): bool
     {
-        $token = $driver->getFcmToken();
+        $token = $center->getFcmToken();
 
         if (!$token) {
-            Log::warning("Driver #{$driver->id} has no FCM token");
+            Log::warning("Center #{$center->id} has no FCM token");
             return false;
         }
 
         return $this->sendToToken($token, $title, $body, $data);
     }
-
-    /**
-     * Send notification to a Provider (single device).
-     *
-     * @param Provider $provider
-     * @param string $title
-     * @param string $body
-     * @param array $data
-     * @return bool
-     */
-    public function sendToProvider(Provider $provider, string $title, string $body, array $data = []): bool
-    {
-        $token = $provider->getFcmToken();
-
-        if (!$token) {
-            Log::warning("Provider #{$provider->id} has no FCM token");
-            return false;
-        }
-
-        return $this->sendToToken($token, $title, $body, $data);
-    }
-
-    /**
-     * Send notification to a Store (single device).
-     *
-     * @param Store $store
-     * @param string $title
-     * @param string $body
-     * @param array $data
-     * @return bool
-     */
-    public function sendToStore(Store $store, string $title, string $body, array $data = []): bool
-    {
-        $token = $store->getFcmToken();
-
-        if (!$token) {
-            Log::warning("Store #{$store->id} has no FCM token");
-            return false;
-        }
-
-        return $this->sendToToken($token, $title, $body, $data);
-    }
-
-    /**
-     * Send notification to multiple drivers.
-     *
-     * @param \Illuminate\Support\Collection $drivers
-     * @param string $title
-     * @param string $body
-     * @param array $data
-     * @return int Number of successful sends
-     */
-    public function sendToDrivers($drivers, string $title, string $body, array $data = []): int
-    {
-        $successCount = 0;
-
-        foreach ($drivers as $driver) {
-            if ($this->sendToDriver($driver, $title, $body, $data)) {
-                $successCount++;
-            }
-        }
-
-        return $successCount;
-    }
-
     /**
      * Send notification to multiple tokens (for broadcast notifications).
      *
@@ -240,30 +176,30 @@ class FcmService
         ];
     }
 
-    /**
-     * Legacy method - Send notification using User model.
-     * Kept for backward compatibility.
-     *
-     * @deprecated Use sendToUser(), sendToDriver(), etc. instead
-     * @param User $user
-     * @param string $title
-     * @param string $body
-     * @param mixed $tokens
-     * @param array $data
-     * @return bool
-     */
-    public function sendNotification(User $user, string $title, string $body, $tokens, array $data = [])
-    {
-        if (is_array($tokens)) {
-            $successCount = 0;
-            foreach ($tokens as $token) {
-                if ($this->sendToToken($token, $title, $body, $data)) {
-                    $successCount++;
-                }
-            }
-            return $successCount > 0;
-        }
+    // /**
+    //  * Legacy method - Send notification using User model.
+    //  * Kept for backward compatibility.
+    //  *
+    //  * @deprecated Use sendToUser(), sendToDriver(), etc. instead
+    //  * @param User $user
+    //  * @param string $title
+    //  * @param string $body
+    //  * @param mixed $tokens
+    //  * @param array $data
+    //  * @return bool
+    //  */
+    // public function sendNotification(User $user, string $title, string $body, $tokens, array $data = [])
+    // {
+    //     if (is_array($tokens)) {
+    //         $successCount = 0;
+    //         foreach ($tokens as $token) {
+    //             if ($this->sendToToken($token, $title, $body, $data)) {
+    //                 $successCount++;
+    //             }
+    //         }
+    //         return $successCount > 0;
+    //     }
 
-        return $this->sendToToken($tokens, $title, $body, $data);
-    }
+    //     return $this->sendToToken($tokens, $title, $body, $data);
+    // }
 }

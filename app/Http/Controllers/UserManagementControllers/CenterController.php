@@ -14,6 +14,7 @@ use App\Http\Requests\Center\UpdateCenterLogoRequest;
 use App\Models\Center\Center;
 use App\Models\Section;
 use App\Models\Service;
+use App\Models\Subservice;
 use App\Services\CenterService;
 use Illuminate\Http\Request;
 
@@ -245,5 +246,11 @@ class CenterController extends Controller
     {
         $centers = $this->centerService->getCentersBySection($section);
         return $this->success($centers, 'تم جلب المراكز التي تنتمي للقسم بنجاح');
+    }
+
+    public function getCentersBySubservice(Subservice $subservice)
+    {
+        $centers = $this->centerService->getCentersBySubservice($subservice);
+        return $this->success($centers, 'تم جلب المراكز التي تقدم الخدمة الفرعية بنجاح');
     }
 }

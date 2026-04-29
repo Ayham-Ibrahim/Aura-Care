@@ -8,6 +8,8 @@ use App\Models\ManageSubservice;
 use App\Models\Offer;
 use App\Models\Section;
 use App\Models\Service;
+use App\Models\Subservice;
+use App\Models\User;
 use App\Traits\DistanceTrait;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -50,7 +52,7 @@ class DashboardService extends Service
                 $price = $offer->manageSubservices->sum('price') - $offer->discount_value;
                 $distance = null;
 
-                 if (Auth::check() && $center) {
+                if (Auth::check() && $center) {
                     $distance = $this->calculateDistance(Auth::user(), $center);
                 }
                 return [
@@ -114,18 +116,39 @@ class DashboardService extends Service
         });
     }
 
-        public function getAllServices()
-        {
-            return Service::select('id', 'name', 'image', 'section_id')->with('section:id,name,image')->get();
-        }
+    public function getAllServices()
+    {
+        return Service::select('id', 'name', 'image', 'section_id')->with('section:id,name,image')->get();
+    }
 
-        public function getAllSections()
-        {
-            return Section::with('services')->select('id', 'name', 'image')->get();
-        }
+    public function getAllSections()
+    {
+        return Section::with('services')->select('id', 'name', 'image')->get();
+    }
 
-        public function getOffers()
-        {
-            return $this->fetchOffers();
-        }
+    public function getOffers()
+    {
+        return $this->fetchOffers();
+    }
+
+
+    public function adminHome()
+    {
+        $usersCount= User::count();
+        $centersCount = Center::count();
+        $servicesCount = Service::count();
+        $sectionsCount = Section::count();
+        $subservicesCount = Subservice::count();
+
+        $sections = Section::select('id', 'name', 'image')->get();
+
+        return [
+            'users_count' => $usersCount,
+            'centers_count' => $centersCount,
+            'services_count' => $servicesCount,
+            'sections_count' => $sectionsCount,
+            'subservices_count' => $subservicesCount,
+            'sections' => $sections,
+        ];
+    }
 }

@@ -36,5 +36,11 @@ class DashboardController extends Controller
         $offers = $this->dashboardService->getOffers();
         return $this->success($offers, 'تم جلب العروض بنجاح');
     }
+
+    public function adminHome()
+    {
+        $data = $this->dashboardService->adminHome();
+        return $this->success($data, 'تم جلب بيانات الصفحة الرئيسية للمشرف بنجاح');
+    }
 }
 

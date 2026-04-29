@@ -114,6 +114,8 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('reservations', ReservationController::class);
     Route::patch('reservations/{reservation}/status', [ReservationController::class, 'updateStatus']);
+
+    Route::get('home', [DashboardController::class, 'adminHome']);
 });
 
 

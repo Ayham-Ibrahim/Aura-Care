@@ -144,11 +144,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::delete('/favorite-centers/{center}', [UserController::class, 'removeFavoriteCenter']);
     Route::post('/favorite-centers/{center}/toggle', [UserController::class, 'DACenters']);
     // detailed center info for user
-    Route::get('/center/{center}', [UserController::class, 'centerDetails']);
-    // filter subservices or works by service for a specific center
-    Route::get('centers/{center}/subservices/service/{service}', [UserController::class, 'getSubservicesForUser']);
-    Route::get('centers/{center}/works/service/{service}', [UserController::class, 'getWorksByServiceForUser']);
-    Route::get('works/{work}', [WorkController::class, 'getWorkById']);
+
 
     Route::post('centers/{center}/subservices/availability', [ReservationController::class, 'getSubserviceWithTime']);
     Route::post('reservations', [ReservationController::class, 'store']);
@@ -161,6 +157,21 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
 
 
 
+
+
+
+    // User device (multi-device support)
+    Route::post('/device/register', [DeviceController::class, 'registerUserDevice']);
+    Route::post('/device/unregister', [DeviceController::class, 'removeUserDevice']);
+});
+
+
+Route::prefix('user')->group(function () {
+    Route::get('/center/{center}', [UserController::class, 'centerDetails']);
+    // filter subservices or works by service for a specific center
+    Route::get('centers/{center}/subservices/service/{service}', [UserController::class, 'getSubservicesForUser']);
+    Route::get('centers/{center}/works/service/{service}', [UserController::class, 'getWorksByServiceForUser']);
+    Route::get('works/{work}', [WorkController::class, 'getWorkById']);
 
     Route::get('services/by-section/{section}', [ServiceController::class, 'getServicesBySection']);
     Route::get('ads', [AdController::class, 'index']);
@@ -178,12 +189,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
 
     // Dashboard home page with cached data
     Route::get('home', [DashboardController::class, 'index']);
-
-    // User device (multi-device support)
-    Route::post('/device/register', [DeviceController::class, 'registerUserDevice']);
-    Route::post('/device/unregister', [DeviceController::class, 'removeUserDevice']);
 });
-
 
 // ---------------------------
 //  Center App 
@@ -247,9 +253,3 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::post('/device/register', [DeviceController::class, 'registerCenterDevice']);
     Route::post('/device/unregister', [DeviceController::class, 'removeCenterDevice']);
 });
-
-
-    Route::get('visitor/services', [DashboardController::class, 'getAllsevices']);
-    Route::get('visitor/sections', [DashboardController::class, 'getAllSection']);
-    Route::get('visitor/offers', [DashboardController::class, 'getOffers']);
-

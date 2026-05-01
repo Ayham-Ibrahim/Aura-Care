@@ -35,17 +35,17 @@ class UserManagementService extends Service
 
         try {
             // التحقق من وجود الرقم مسبقاً
-            // $existingUser = User::where('phone', $data['phone'])->first();
+            $existingUser = User::where('phone', $data['phone'])->first();
 
-            // if ($existingUser) {
-            //     // إذا كان الحساب موجود ومفعل
-            //     if ($existingUser->isPhoneVerified()) {
-            //         return [
-            //             'success' => false,
-            //             'message' => 'رقم الهاتف مسجل مسبقاً',
-            //         ];
-            //     }
-            // }
+            if ($existingUser) {
+                // إذا كان الحساب موجود ومفعل
+                // if ($existingUser->isPhoneVerified()) {
+                return [
+                    'success' => false,
+                    'message' => 'رقم الهاتف مسجل مسبقاً',
+                ];
+                // }
+            }
             $user = User::create([
                 'name'              => $data['name'],
                 'phone'             => $data['phone'],
@@ -57,6 +57,9 @@ class UserManagementService extends Service
                 'h_location'        => $data['h_location'],
                 'phone_verified_at' => null, // غير مؤكد
             ]);
+            if ($data['fcm_token'] ?? false) {
+                $user->registerDevice($data['fcm_token']);
+            }
 
             // إرسال OTP للتأكيد
             try {
@@ -237,6 +240,10 @@ class UserManagementService extends Service
             now()->addYear()
         )->plainTextToken;
 
+        if ($credentials['fcm_token'] ?? false) {
+            $account->registerDevice($credentials['fcm_token']);
+        }
+
         return [
             'success' => true,
             'data' => [
@@ -256,11 +263,11 @@ class UserManagementService extends Service
         try {
             // $user = User::where('phone', $data['phone'])->first();
             $model = match ($data['type']) {
-            'user'          => User::class,
-            'center'      => Center::class,
-        };
+                'user'          => User::class,
+                'center'      => Center::class,
+            };
 
-        $user = $model::where('phone', $data['phone'])->first();
+            $user = $model::where('phone', $data['phone'])->first();
 
             if (!$user) {
                 return [
@@ -319,9 +326,14 @@ class UserManagementService extends Service
         }
     }
 
-    public function logout($user)
+    public function logout($data = [])
     {
-        $user->currentAccessToken()->delete();
+        $user = Auth::user();
+        if ($data['fcm_token'] ?? false) {
+            \App\Models\Device::removeByToken($user, $data['fcm_token']);
+            return "dfas";
+        }
+        // $user->currentAccessToken()->delete();
         return ['message' => 'Logged out'];
     }
 
@@ -352,7 +364,7 @@ class UserManagementService extends Service
             ]);
             return $user;
         } catch (\Exception $e) {
-            Log::error('Error updating user location', [ 'data' => $data, 'error' => $e->getMessage()]);
+            Log::error('Error updating user location', ['data' => $data, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء تعديل موقع المستخدم');
         }
     }
@@ -383,7 +395,7 @@ class UserManagementService extends Service
             ]);
             return $user;
         } catch (\Exception $e) {
-            Log::error('Error updating user payment info', [ 'data' => $data, 'error' => $e->getMessage()]);
+            Log::error('Error updating user payment info', ['data' => $data, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء تعديل بيانات الدفع');
         }
     }
@@ -656,7 +668,7 @@ class UserManagementService extends Service
      */
     public function updateBasicProfile(array $data)
     {
-        try{
+        try {
             $user = Auth::user();
             $user->update([
                 'name' => $data['name'] ?? $user->name,
@@ -670,7 +682,7 @@ class UserManagementService extends Service
             ]);
             return $user->only(['avatar', 'name', 'phone']);
         } catch (\Exception $e) {
-            Log::error('Error updating basic profile', [ 'data' => $data, 'error' => $e->getMessage()]);
+            Log::error('Error updating basic profile', ['data' => $data, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء تحديث بيانات الملف الشخصي الأساسية');
         }
     }

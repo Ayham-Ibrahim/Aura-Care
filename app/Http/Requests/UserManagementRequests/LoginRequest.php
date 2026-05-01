@@ -24,7 +24,8 @@ class LoginRequest extends FormRequest
         return [
             'phone'    => 'required|string|max:255',
             'password' => 'required|string|min:6|max:255',
-            'type' => 'required|in:user,center'
+            'type' => 'required|in:user,center',
+            'fcm_token' => 'nullable|string|min:10|max:255',
         ];
     }
      /**
@@ -37,7 +38,8 @@ class LoginRequest extends FormRequest
         return [
             'phone' => 'رقم الواتساب',
             'password' => 'كلمة المرور',
-            'type' => 'نوع المستخدم'
+            'type' => 'نوع المستخدم',
+            'fcm_token' => 'توكن الاشعارات',
         ];
     }
      /**
@@ -48,6 +50,9 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'fcm_token.string' => 'توكن الاشعارات غير صالح',
+            'fcm_token.min' => 'توكين الاشعارات غير صالح',
+            'fcm_token.max' => 'توكين الاشعارات غير صالح',
             'required' => 'حقل :attribute مطلوب.',
             'string' => 'حقل :attribute يجب أن يكون نصاً.',
             'max' => 'حقل :attribute يجب ألا يتجاوز :max حرف/أحرف.',

@@ -35,6 +35,7 @@ class StoreUserFormRequest extends FormRequest
             'v_location' => 'required|string|max:255',
             'h_location' => 'required|string|max:255',
             // 'is_admin' => 'nullable|boolean|in:0,1',
+            'fcm_token' => 'nullable|string|min:10|max:255',
         ];
     }
     /**
@@ -55,6 +56,7 @@ class StoreUserFormRequest extends FormRequest
             'gender' => 'الجنس',
             'age' => 'العمر',
             'avatar' => 'الصورة الشخصية',
+            'fcm_token' => ' توكين الاشعارات',
         ];
     }
     /**
@@ -65,6 +67,9 @@ class StoreUserFormRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'fcm_token.string' => 'حقل :attribute يجب أن يكون نصاً.',
+            'fcm_token.min' => 'توكين الاشعارات غير صالح',
+            'fcm_token.max' => 'توكين الاشعارات غير صالح',
             'required' => 'حقل :attribute مطلوب.',
             'string' => 'حقل :attribute يجب أن يكون نصاً.',
             'max' => 'حقل :attribute يجب ألا يتجاوز :max حرف/أحرف.',

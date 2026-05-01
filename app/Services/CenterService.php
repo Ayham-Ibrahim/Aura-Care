@@ -590,7 +590,7 @@ class CenterService extends Service
                 }
 
                 $center = $manageSubservice->center;
-                $distance = null;
+                $distance = (float) 0;
                 if ($user && $center) {
                     $distance = $this->calculateDistance($user, $center);
                 }

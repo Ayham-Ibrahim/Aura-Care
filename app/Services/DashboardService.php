@@ -14,6 +14,7 @@ use App\Traits\DistanceTrait;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class DashboardService extends Service
 {
@@ -36,38 +37,45 @@ class DashboardService extends Service
 
     protected function fetchOffers()
     {
-        return Offer::with([
-            'center:id,name,logo,rating,location_v,location_h',
-            'manageSubservices:id,price',
-        ])
-            ->select('id', 'center_id', 'image', 'description', 'discount_value', 'from', 'to', 'discount_percentage')
-            ->where('from', '<=', Carbon::now())
-            ->where('to', '>=', Carbon::now())
-            ->whereHas('center', function ($query) {
-                $query->where('is_active', true);
-            })
-            ->get()
-            ->map(function (Offer $offer) {
-                $center = $offer->center ? $offer->center : null;
-                $price = $offer->manageSubservices->sum('price') - $offer->discount_value;
-                $distance = null;
+        try {
+            // return Offer::all();
+            return Offer::with([
+                'center:id,name,logo,rating,location_v,location_h',
+                'manageSubservices:id,price',
+            ])
+                ->select('id', 'center_id', 'image', 'description', 'discount_value', 'from', 'to', 'discount_percentage')
+                ->where('from', '<=', Carbon::now())
+                ->where('to', '>=', Carbon::now())
+                ->whereHas('center', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->get()
+                ->map(function (Offer $offer) {
+                    $center = $offer->center ? $offer->center : null;
+                    $price = $offer->manageSubservices->sum('price') - $offer->discount_value;
+                    $distance = null;
 
-                if (Auth::check() && $center) {
-                    $distance = $this->calculateDistance(Auth::user(), $center);
-                }
-                return [
-                    'id' => $offer->id,
-                    'image' => $offer->image,
-                    'description' => $offer->description,
-                    'price' => $price,
-                    'old_price' => $offer->manageSubservices->sum('price'),
-                    'discount_percentage' => $offer->discount_percentage,
-                    'from' => $offer->from,
-                    'to' => $offer->to,
-                    'distance' => $distance,
-                    'center' => $center->only(['id', 'name', 'logo', 'rating']),
-                ];
-            });
+                    if (Auth::check() && $center) {
+                        $distance = $this->calculateDistance(Auth::user(), $center);
+                    } else {
+                        $distance = (float) 0;
+                    }
+                    return [
+                        'id' => $offer->id,
+                        'image' => $offer->image,
+                        'description' => $offer->description,
+                        'price' => $price,
+                        'old_price' => $offer->manageSubservices->sum('price'),
+                        'discount_percentage' => $offer->discount_percentage,
+                        'from' => $offer->from,
+                        'to' => $offer->to,
+                        'distance' => $distance,
+                        'center' => $center->only(['id', 'name', 'logo', 'rating']),
+                    ];
+                });
+        } catch (\Exception $e) {
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالقسم');
+        }
     }
 
     protected function fetchAds()
@@ -134,7 +142,7 @@ class DashboardService extends Service
 
     public function adminHome()
     {
-        $usersCount= User::count();
+        $usersCount = User::count();
         $centersCount = Center::count();
         $servicesCount = Service::count();
         $sectionsCount = Section::count();

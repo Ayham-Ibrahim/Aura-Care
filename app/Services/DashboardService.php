@@ -24,18 +24,18 @@ class DashboardService extends Service
      *
      * @return array
      */
-    public function getHomePageData(): array
+    public function getHomePageData($search = null): array
     {
         return [
-            'offers' => $this->fetchOffers(),
+            'offers' => $this->fetchOffers($search),
             'ads' => $this->fetchAds(),
-            'sections' => $this->fetchSections(),
-            'centers' => $this->fetchCenters(),
-            'sub_services_has_points' => $this->fetchSubservicesHasPoints(),
+            'services' => $this->fetchServices($search),
+            'centers' => $this->fetchCenters($search),
+            'sub_services_has_points' => $this->fetchSubservicesHasPoints($search),
         ];
     }
 
-    protected function fetchOffers()
+    protected function fetchOffers($search = null)
     {
         try {
             // return Offer::all();
@@ -46,6 +46,11 @@ class DashboardService extends Service
                 ->select('id', 'center_id', 'image', 'description', 'discount_value', 'from', 'to', 'discount_percentage')
                 ->where('from', '<=', Carbon::now())
                 ->where('to', '>=', Carbon::now())
+                ->when($search, function ($query) use ($search) {
+                    $query->whereHas('center', function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%');
+                    });
+                })
                 ->whereHas('center', function ($query) {
                     $query->where('is_active', true);
                 })
@@ -83,23 +88,37 @@ class DashboardService extends Service
         return Ad::select('id', 'image')->get();
     }
 
-    protected function fetchSections()
+    protected function fetchServices($search = null)
     {
-        return Section::select('id', 'name', 'image')->get();
+        return Service::select('id', 'name', 'image')
+        ->when($search, function ($query) use ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        })->get();
     }
 
-    protected function fetchCenters()
+    protected function fetchCenters($search = null)
     {
-        return Center::active()->select('id', 'name', 'logo')->get();
+        return Center::active()->select('id', 'name', 'logo')->when($search, function ($query) use ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        })->get();
     }
 
-    protected function fetchSubservicesHasPoints()
+    protected function fetchSubservicesHasPoints($search = null)
     {
         $subservice = ManageSubservice::with([
             'center:id,name,logo,rating',
             'subservice:id,name,image',
         ])
             ->select('id', 'center_id', 'subservice_id', 'points', 'from', 'to')
+            ->when($search, function ($query) use ($search) {
+                $query
+                ->WhereHas('subservice', function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%');
+                });
+                // ->orwhereHas('center', function ($query) use ($search) {
+                //     $query->where('name', 'like', '%' . $search . '%');
+                // })
+            })
             ->where('activating_points', 1)
             ->whereHas('center', function ($query) {
                 $query->where('is_active', true);
@@ -111,6 +130,12 @@ class DashboardService extends Service
         return $subservice->map(function (ManageSubservice $manageSubservice) {
             $center = $manageSubservice->center ? $manageSubservice->center->only(['id', 'name', 'logo', 'rating']) : null;
             $subservice = $manageSubservice->subservice ? $manageSubservice->subservice->only(['id', 'name', 'image']) : null;
+            $distance = 0;
+            if (Auth::check() && $center) {
+                $distance = $this->calculateDistance(Auth::user(), $center);
+            } else {
+                $distance = (float) 0;
+            }
 
             return [
                 'id' => $manageSubservice->id,
@@ -119,6 +144,7 @@ class DashboardService extends Service
                 'points' => $manageSubservice->points,
                 'from' => $manageSubservice->from,
                 'to' => $manageSubservice->to,
+                'distance' => $distance,
                 'center' => $center,
             ];
         });
@@ -136,7 +162,7 @@ class DashboardService extends Service
 
     public function getOffers()
     {
-        return $this->fetchOffers();
+        return $this->fetchOffers($search = null);
     }
 
 

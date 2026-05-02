@@ -404,9 +404,25 @@ class CenterService extends Service
      */
     public function listCentersBasic()
     {
-        return Center::active()
-            ->select('id', 'name', 'logo')
-            ->get();
+        $centers = Center::active()
+            ->select('id', 'name', 'logo', 'rating', 'location_h', 'location_v')
+            ->get()
+            ->map(function ($center) {
+                if (Auth::check() && $center) {
+                    $distance = $this->calculateDistance(Auth::user(), $center);
+                } else {
+                    $distance = (float) 0;
+                }
+                return [
+                    'id' => $center->id,
+                    'name' => $center->name,
+                    'logo' => $center->logo,
+                    'rating' => $center->rating,
+                    'distance' => $distance,
+                ];
+            });
+
+        return $centers;
     }
 
     /**
@@ -580,7 +596,7 @@ class CenterService extends Service
                 //offer
                 $offer = $manageSubservice->offers->map(function ($offer) use ($manageSubservice) {
                     $count = $offer->manageSubservices->count();
-                    if($count == 1) {
+                    if ($count == 1) {
                         return $offer;
                     }
                 })->filter()->first();

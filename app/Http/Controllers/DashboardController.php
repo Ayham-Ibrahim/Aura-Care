@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\DashboardService;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -13,9 +14,9 @@ class DashboardController extends Controller
         $this->dashboardService = $dashboardService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $data = $this->dashboardService->getHomePageData();
+        $data = $this->dashboardService->getHomePageData($request->search);
         return $this->success($data, 'تم جلب بيانات الصفحة الرئيسية بنجاح');
     }
 

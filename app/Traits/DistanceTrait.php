@@ -15,7 +15,7 @@ trait DistanceTrait
         $lonTo = $center->location_v;
 
         if ($latFrom === null || $lonFrom === null || $latTo === null || $lonTo === null) {
-            return null;
+            return (float) 0; // Return 0 if any of the coordinates are missing
         }
 
         $earthRadiusKm = 6371;

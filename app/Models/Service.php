@@ -27,7 +27,7 @@ class Service extends Model
 
     public function centers()
     {
-        return $this->belongsToMany(Center::class, 'center_service')->withTimestamps();
+        return $this->belongsToMany(Center::class, 'center_service', 'service_id', 'center_id')->withTimestamps();
     }
     
     public function works()

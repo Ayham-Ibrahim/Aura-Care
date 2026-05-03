@@ -106,7 +106,7 @@ class DashboardService extends Service
     protected function fetchSubservicesHasPoints($search = null)
     {
         $subservice = ManageSubservice::with([
-            'center:id,name,logo,rating',
+            'center',
             'subservice:id,name,image',
         ])
             ->select('id', 'center_id', 'subservice_id', 'points', 'from', 'to')
@@ -128,7 +128,7 @@ class DashboardService extends Service
             ->get();
 
         return $subservice->map(function (ManageSubservice $manageSubservice) {
-            $center = $manageSubservice->center ? $manageSubservice->center->only(['id', 'name', 'logo', 'rating']) : null;
+            $center = $manageSubservice->center ? $manageSubservice->center: null;
             $subservice = $manageSubservice->subservice ? $manageSubservice->subservice->only(['id', 'name', 'image']) : null;
             $distance = 0;
             if (Auth::check() && $center) {
@@ -145,7 +145,7 @@ class DashboardService extends Service
                 'from' => $manageSubservice->from,
                 'to' => $manageSubservice->to,
                 'distance' => $distance,
-                'center' => $center,
+                'center' => $center->only(['id', 'name', 'logo', 'rating']) ,
             ];
         });
     }

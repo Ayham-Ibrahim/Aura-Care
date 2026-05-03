@@ -174,6 +174,7 @@ Route::prefix('user')->group(function () {
     Route::get('works/{work}', [WorkController::class, 'getWorkById']);
 
     Route::get('services/by-section/{section}', [ServiceController::class, 'getServicesBySection']);
+    Route::get('services/list', [ServiceController::class, 'getServicesList']);
     Route::get('ads', [AdController::class, 'index']);
 
     Route::get('sections/basic', [SectionController::class, 'listBasic']);

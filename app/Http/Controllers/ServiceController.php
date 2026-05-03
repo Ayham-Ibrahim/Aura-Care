@@ -63,4 +63,10 @@ class ServiceController extends Controller
         $services = $this->serviceService->getServicesBySection($section);
         return $this->success($services, 'تم الحصول على الخدمات بنجاح');
     }
+
+    public function getServicesList()
+    {
+        $services = $this->serviceService->getServicesList();
+        return $this->success($services, 'تم الحصول على جميع الخدمات بنجاح');
+    }
 }

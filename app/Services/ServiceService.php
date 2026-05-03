@@ -97,6 +97,11 @@ class ServiceService extends ServicesService
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب الخدمات الخاصة بالقسم');
         }
     }
+
+    public function getServicesList()
+    {
+        return Service::select('id', 'name', 'image')->get();
+    }
 }
      
 

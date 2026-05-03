@@ -86,11 +86,11 @@ class CenterController extends Controller
         return $this->success($subservices, 'تم تعديل الخدمة بنجاح');
     }
 
-    public function getSubservicesById($subservice_id)
+    public function getSubservicesById(Subservice $subservice)
     {
-        $subservices = $this->centerService->subservicesById($subservice_id);
+        $subservices = $this->centerService->subservicesById($subservice);
         if(!$subservices){
-            return $this->notFoundResponse('الخدمة الفرعية غير موجودة');
+            return $this->notFoundResponse('لا يقدم المركز هذة الخدمة');
         }
         return $this->success($subservices, 'تم الحصول على الخدمات الفرعية بنجاح');
     }

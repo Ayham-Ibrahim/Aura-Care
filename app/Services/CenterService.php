@@ -506,7 +506,7 @@ class CenterService extends Service
     {
         try {
             $center = Auth::guard('center')->user();
-            $manage_subservice = ManageSubservice::where('center_id', $center->id)
+            $manage_subservice = ManageSubservice::with('subservice:id,name,image')->where('center_id', $center->id)
                 ->where('subservice_id', $subservice->id)
                 ->first();
 
@@ -520,13 +520,14 @@ class CenterService extends Service
                     'center_id' => $center->id,
                     'subservice_id' => $subservice->id,
                 ]);
-                $manage_subservice = ManageSubservice::where('center_id', $center->id)
+                $manage_subservice = ManageSubservice::with('subservice:id,name,image')->where('center_id', $center->id)
                     ->where('subservice_id', $subservice->id)
                     ->first();
             }
+            $manage_subservice->id = $subservice->id;
 
 
-            return $manage_subservice->load('subservice:id,name,image');
+            return $manage_subservice;
         } catch (\Exception $e) {
             Log::error('Error fetching subservice by id for center', ['center_id' => $subservice->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطاء ما اثناء جلب الخدمة الخاصة بالمركز');

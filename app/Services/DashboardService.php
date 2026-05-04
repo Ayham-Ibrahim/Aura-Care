@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\CenterSortType;
 use App\Models\Ad;
 use App\Models\Center\Center;
 use App\Models\ManageSubservice;
@@ -24,13 +25,13 @@ class DashboardService extends Service
      *
      * @return array
      */
-    public function getHomePageData($search = null): array
+    public function getHomePageData($search = null , $filter = null): array
     {
         return [
             'offers' => $this->fetchOffers($search),
             'ads' => $this->fetchAds(),
             'services' => $this->fetchServices($search),
-            'centers' => $this->fetchCenters($search),
+            'centers' => $this->fetchCenters($search, $filter),
             'sub_services_has_points' => $this->fetchSubservicesHasPoints($search),
         ];
     }
@@ -91,16 +92,49 @@ class DashboardService extends Service
     protected function fetchServices($search = null)
     {
         return Service::select('id', 'name', 'image')
-        ->when($search, function ($query) use ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
-        })->get();
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%');
+            })->get();
     }
 
-    protected function fetchCenters($search = null)
+    protected function fetchCenters($search = null, $filter = null)
     {
-        return Center::active()->select('id', 'name', 'logo')->when($search, function ($query) use ($search) {
+        $centers = Center::active()->when($search, function ($query) use ($search) {
             $query->where('name', 'like', '%' . $search . '%');
-        })->get();
+        });
+
+        if ($filter == CenterSortType::CLOSEST->value) {
+            $centers = $centers->get()
+            ->map(function (Center $center) {
+                $distance = 0;
+                if (Auth::check()) {
+                    $distance = $this->calculateDistance(Auth::user(), $center);
+                } else {
+                    $distance = (float) 0;
+                }
+                $center->distance = $distance;
+                return $center
+                ;
+            })->sortBy('distance')->values()
+            ;
+        } elseif ($filter == CenterSortType::HAS_OFFERS->value) {
+            $centers = $centers->whereHas('offers', function ($query) {
+                $query->where('from', '<=', Carbon::now())
+                    ->where('to', '>=', Carbon::now());
+            })->get();
+        } elseif ($filter == CenterSortType::HIGHEST_RATING->value) {
+            $centers = $centers->orderByDesc('rating')->get();
+        } else {
+            $centers = $centers->get();
+        }
+
+        return $centers->map(function (Center $center) {
+            return [
+                'id' => $center->id,
+                'name' => $center->name,
+                'logo' => $center->logo,
+            ];
+        });
     }
 
     protected function fetchSubservicesHasPoints($search = null)
@@ -112,9 +146,9 @@ class DashboardService extends Service
             ->select('id', 'center_id', 'subservice_id', 'points', 'from', 'to')
             ->when($search, function ($query) use ($search) {
                 $query
-                ->WhereHas('subservice', function ($query) use ($search) {
-                    $query->where('name', 'like', '%' . $search . '%');
-                });
+                    ->WhereHas('subservice', function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%');
+                    });
                 // ->orwhereHas('center', function ($query) use ($search) {
                 //     $query->where('name', 'like', '%' . $search . '%');
                 // })
@@ -128,7 +162,7 @@ class DashboardService extends Service
             ->get();
 
         return $subservice->map(function (ManageSubservice $manageSubservice) {
-            $center = $manageSubservice->center ? $manageSubservice->center: null;
+            $center = $manageSubservice->center ? $manageSubservice->center : null;
             $subservice = $manageSubservice->subservice ? $manageSubservice->subservice->only(['id', 'name', 'image']) : null;
             $distance = 0;
             if (Auth::check() && $center) {
@@ -145,7 +179,7 @@ class DashboardService extends Service
                 'from' => $manageSubservice->from,
                 'to' => $manageSubservice->to,
                 'distance' => $distance,
-                'center' => $center->only(['id', 'name', 'logo', 'rating']) ,
+                'center' => $center->only(['id', 'name', 'logo', 'rating']),
             ];
         });
     }

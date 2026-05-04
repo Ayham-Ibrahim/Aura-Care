@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Dashboard\HomeRequest;
 use App\Services\DashboardService;
 use Illuminate\Http\Request;
 
@@ -14,9 +15,9 @@ class DashboardController extends Controller
         $this->dashboardService = $dashboardService;
     }
 
-    public function index(Request $request)
+    public function index(HomeRequest $request)
     {
-        $data = $this->dashboardService->getHomePageData($request->search);
+        $data = $this->dashboardService->getHomePageData($request->search,$request->filter);
         return $this->success($data, 'تم جلب بيانات الصفحة الرئيسية بنجاح');
     }
 

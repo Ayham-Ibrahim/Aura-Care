@@ -34,18 +34,21 @@ class UserService extends Service
             'location_v',
             'location_h',
         ]);
-        if(Auth::check()){
+        if (Auth::check()) {
             $basic['is_favorited'] =  Auth::guard('api')->user()->favoriteCenters()->where('center_id', $center->id)->exists() ?? false;
             $basic['distance'] = $this->calculateDistance(Auth::guard('api')->user(), $center);
-        }else{
+        } else {
             $basic['is_favorited'] = false;
-            $basic['distance'] =(float) 0;
+            $basic['distance'] = (float) 0;
         }
 
         $basic['working_hours'] = $center->workingHours;
         $basic['services'] = $center->services->makeHidden('pivot');
         $basic['works'] =  $center->works->map(function ($work) {
-            return $work->service;
+
+            $works = $work->service;
+            $works->id = $work->id;
+            return $works;
         });
 
 

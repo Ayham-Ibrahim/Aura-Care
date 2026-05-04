@@ -45,10 +45,12 @@ class UserService extends Service
         $basic['working_hours'] = $center->workingHours;
         $basic['services'] = $center->services->makeHidden('pivot');
         $basic['works'] =  $center->works->map(function ($work) {
+            return [
+                'id' => $work->id,
+                'name' => $work->service->name,
+                'image' => $work->service->image,
 
-            $works = $work->service;
-            $works->id = $work->id;
-            return $works;
+            ];
         });
 
 

@@ -504,30 +504,33 @@ class CenterService extends Service
 
     public function subservicesById(Subservice $subservice)
     {
-        // try {
+        try {
             $center = Auth::guard('center')->user();
             $manage_subservice = ManageSubservice::where('center_id', $center->id)
                 ->where('subservice_id', $subservice->id)
                 ->first();
 
-                if(!$manage_subservice){
-                   $serivce_id = $subservice->service_id;
-                    $services = $center->services()->pluck('services.id')->toArray();
-                    if(!in_array($serivce_id, $services)){
-                        return null;
-                    }
-                    $manage_subservice = ManageSubservice::create([
-                        'center_id' => $center->id,
-                        'subservice_id' => $subservice->id,
-                    ]);
+            if (!$manage_subservice) {
+                $serivce_id = $subservice->service_id;
+                $services = $center->services()->pluck('services.id')->toArray();
+                if (!in_array($serivce_id, $services)) {
+                    return null;
                 }
+                $manage_subservice = ManageSubservice::create([
+                    'center_id' => $center->id,
+                    'subservice_id' => $subservice->id,
+                ]);
+                $manage_subservice = ManageSubservice::where('center_id', $center->id)
+                    ->where('subservice_id', $subservice->id)
+                    ->first();
+            }
 
-            
+
             return $manage_subservice->load('subservice:id,name,image');
-        // } catch (\Exception $e) {
-        //     Log::error('Error fetching subservice by id for center', ['center_id' => $center->id, 'error' => $e->getMessage()]);
-        //     $this->throwExceptionJson('حدث خطاء ما اثناء جلب الخدمة الخاصة بالمركز');
-        // }
+        } catch (\Exception $e) {
+            Log::error('Error fetching subservice by id for center', ['center_id' => $subservice->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطاء ما اثناء جلب الخدمة الخاصة بالمركز');
+        }
     }
 
     public function storeCenterDocuments($data)

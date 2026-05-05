@@ -20,7 +20,7 @@ class NotificationService
         return $this->fcmService->sendToCenter(
             $reservation->center,
             'حجز جديد',
-            "لديك حجز جديد بتاريخ: {$reservation->reservation_date->format('Y-m-d H:i')}",
+            "لديك حجز جديد بتاريخ: {$reservation->date->format('Y-m-d H:i')}",
             ['reservation_id' => $reservation->id]
         );
     }
@@ -31,7 +31,7 @@ class NotificationService
             $reservation->user,
             'تم إنشاء الحجز',
             "تم إنشاء حجزك بتاريخ:
-            {$reservation->reservation_date->format('Y-m-d H:i')}
+            {$reservation->date->format('Y-m-d H:i')}
             بانتظار موافقة المركز
             ",
             ['reservation_id' => $reservation->id]
@@ -44,7 +44,7 @@ class NotificationService
             $reservation->user,
             'تحديث حالة الحجز',
             "تم إلغاء حجزك بتاريخ:
-            {$reservation->reservation_date->format('Y-m-d H:i')}
+            {$reservation->date->format('Y-m-d H:i')}
              ",
             ['reservation_id' => $reservation->id]
         );
@@ -55,7 +55,7 @@ class NotificationService
         return $this->fcmService->sendToCenter(
             $reservation->center,
             ' الغاء حجز',
-            "تم إلغاء حجز بتاريخ: {$reservation->reservation_date->format('Y-m-d H:i')}",
+            "تم إلغاء حجز بتاريخ: {$reservation->date->format('Y-m-d H:i')}",
             ['reservation_id' => $reservation->id]
         );
     }
@@ -66,7 +66,7 @@ class NotificationService
             $reservation->user,
             'تمت الموافقة على الحجز',
             "تمت الموافقة حجزك بتاريخ:
-            {$reservation->reservation_date->format('Y-m-d H:i')}
+            {$reservation->date->format('Y-m-d H:i')}
              ",
             ['reservation_id' => $reservation->id]
         );
@@ -90,7 +90,7 @@ class NotificationService
             $reservation->user,
             "ارجاع رعبون الحجز",
             "تم ارجاع القيمة المدفوعة لحجزك بتاريخ:
-            {$reservation->reservation_date->format('Y-m-d H:i')}
+            {$reservation->date->format('Y-m-d H:i')}
              ",
             ['reservation_id' => $reservation->id]
         );

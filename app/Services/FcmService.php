@@ -30,7 +30,7 @@ class FcmService
     protected function initConfig()
     {
         $this->firebaseProjectId = config('services.firebase.project_id');
-        $this->credentialsPath = config('services.firebase.credentialsPath');
+        $this->credentialsPath = storage_path('app/aura-f49c0-firebase-adminsdk-fbsvc-db4625c19a.json');
     }
 
     /**
@@ -139,8 +139,14 @@ class FcmService
             Log::warning("Center #{$center->id} has no FCM token");
             return false;
         }
+        if($this->sendToToken($token, $title, $body, $data)){
+            // Log::info("FCM sent to Center #{$center->id}");
+            return true;
+        } 
+            Log::error("Failed to send FCM to Center #{$center->id}");
 
-        return $this->sendToToken($token, $title, $body, $data);
+        return false;
+        
     }
     /**
      * Send notification to multiple tokens (for broadcast notifications).

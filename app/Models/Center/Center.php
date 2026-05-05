@@ -204,4 +204,12 @@ class Center extends Model
     {
         return Device::registerSingleDevice($this, $fcmToken);
     }
+
+
+
+
+    public function getFcmToken()
+    {
+        return Device::getTokens($this);
+    }
 }

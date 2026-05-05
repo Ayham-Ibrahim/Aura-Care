@@ -93,4 +93,10 @@ class User extends Authenticatable
     {
         return Device::registerSingleDevice($this, $fcmToken);
     }
+
+
+    public function getFcmToken()
+    {
+        return Device::getTokens($this);
+    }
 }

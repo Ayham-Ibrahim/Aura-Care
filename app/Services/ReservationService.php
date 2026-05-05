@@ -499,12 +499,12 @@ class ReservationService extends Service
         $this->chackUserAuth($reservation);
 
         if ($reservation->status === 'cancelled') {
-            $this->throwExceptionJson('تم إلغاء الحجز بالفعل');
+            $this->throwExceptionJson('تم إلغاء الحجز بالفعل', 422);
         }
 
         $hoursDiff = Carbon::now()->diffInHours($reservation->date, false);
         if ($hoursDiff <= 24) {
-            $this->throwExceptionJson('لا يمكن إلغاء الحجز قبل أقل من 24 ساعة');
+            $this->throwExceptionJson('لا يمكن إلغاء الحجز قبل أقل من 24 ساعة',422);
         }
 
         DB::beginTransaction();
@@ -536,16 +536,16 @@ class ReservationService extends Service
         }
 
         if ($reservation->status !== 'completed') {
-            $this->throwExceptionJson('لا يمكن تقييم المركز إلا بعد اكتمال الحجز');
+            $this->throwExceptionJson('لا يمكن تقييم المركز إلا بعد اكتمال الحجز',403);
         }
-
+    
         // التحقق من أن المستخدم لم يقيّم هذا الحجز من قبل
         $existingReview = Reviews::where('user_id', auth('sanctum')->id())
             ->where('reservation_id', $reservation->id)
             ->first();
 
         if ($existingReview) {
-            $this->throwExceptionJson('لقد قمت بتقييم هذا الحجز مسبقاً');
+            $this->throwExceptionJson('لقد قمت بتقييم هذا الحجز مسبقاً', 403);
         }
 
         try {

@@ -14,7 +14,7 @@ class GetSubserviceWithTime extends FormRequest
     public function rules(): array
     {
         return [
-            'center_id' => 'required|exists:centers,id',
+            // 'center_id' => 'required|exists:centers,id',
             'offer' => 'nullable|integer|exists:offers,id',
             'manage_subservice' => 'nullable|array|min:1',
             'manage_subservice.*' => 'required|integer|exists:manage_subservices,id',

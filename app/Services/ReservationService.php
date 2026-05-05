@@ -110,10 +110,12 @@ class ReservationService extends Service
             $this->throwExceptionJson('حدث خطأ ما أثناء تعديل حالة الحجز');
         }
     }
-    public function getSubserviceWithTime(array $data)
+    public function getSubserviceWithTime(Center $center, array $data)
     {
+        $data['center_id'] = $center->id;
         $is_offer = false;
-        $center = Center::with('workingHours')->findOrFail($data['center_id']);
+        // $center = Center::with('workingHours')->findOrFail($data['center_id']);
+        $center->load('workingHours');
 
         if (!$center) {
             $this->throwExceptionJson('المركز غير موجود', 404);

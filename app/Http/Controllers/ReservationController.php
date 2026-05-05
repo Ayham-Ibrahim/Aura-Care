@@ -77,9 +77,9 @@ class ReservationController extends Controller
         return $this->success($reservation, 'تم الحصول على حجوزات المركز بنجاح');
     }
 
-    public function getSubserviceWithTime(GetSubserviceWithTime $request)
+    public function getSubserviceWithTime(Center $center,GetSubserviceWithTime $request)
     {
-        $response = $this->reservationService->getSubserviceWithTime($request->validated());
+        $response = $this->reservationService->getSubserviceWithTime($center, $request->validated());
         return $this->success($response, 'تم جلب بيانات الخدمات والأوقات المتاحة بنجاح');
     }
 

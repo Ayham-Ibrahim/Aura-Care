@@ -178,6 +178,9 @@ class UserManagementService extends Service
                 'message' => 'بيانات الدخول غير صحيحة',
             ];
         }
+        if ($credentials['fcm_token'] ?? false) {
+            $account->registerDevice($credentials['fcm_token']);
+        }
 
         if ($credentials['type'] === 'user' && $account->is_admin) {
             if (! $account->is_admin) {
@@ -240,9 +243,7 @@ class UserManagementService extends Service
             now()->addYear()
         )->plainTextToken;
 
-        if ($credentials['fcm_token'] ?? false) {
-            $account->registerDevice($credentials['fcm_token']);
-        }
+
 
         return [
             'success' => true,

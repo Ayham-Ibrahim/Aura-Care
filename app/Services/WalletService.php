@@ -97,6 +97,7 @@ class WalletService extends Service
                     'id' => $center->id,
                     'name' => $center->name,
                     'logo' => $center->logo,
+                    'is_active' => $center->is_active,
                     'total_value' => round((float) $center->total_required_value, 2),
                 ];
             });

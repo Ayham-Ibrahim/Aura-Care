@@ -78,6 +78,8 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
         Route::get('/', [UserManagementController::class, 'listUsers']);      // index
         Route::get('/{user}/user-points', [UserManagementController::class, 'getUserPointsForAdmin']); // admin user points by center
         Route::get('/{id}', [UserManagementController::class, 'userDetails']); // show
+        Route::get('/{user}/reservations', [ReservationController::class, 'getUserReservationsForAdmin']); // admin user reservations
+        Route::patch('/{reservation}/cancel', [ReservationController::class, 'adminCancelUserReservation']); // admin cancel user reservation
         Route::delete('/{id}', [UserManagementController::class, 'deleteUser']); // delete
     });
 

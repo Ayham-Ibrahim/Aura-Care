@@ -9,6 +9,7 @@ use App\Models\Point;
 use App\Models\Reservation;
 use App\Models\ReservationPaymentImage;
 use App\Models\Reviews;
+use App\Models\User;
 use App\Models\Wallet;
 use App\Services\FileStorage;
 use Carbon\Carbon;
@@ -458,7 +459,7 @@ class ReservationService extends Service
 
         try {
             $reservation->update(['is_return' => true]);
-            
+
             $this->notificationService->notiReservationDepositRefundForUser($reservation);
 
             return $reservation;
@@ -506,7 +507,7 @@ class ReservationService extends Service
 
         $hoursDiff = Carbon::now()->diffInHours($reservation->date, false);
         if ($hoursDiff <= 24) {
-            $this->throwExceptionJson('لا يمكن إلغاء الحجز قبل أقل من 24 ساعة',422);
+            $this->throwExceptionJson('لا يمكن إلغاء الحجز قبل أقل من 24 ساعة', 422);
         }
 
         DB::beginTransaction();
@@ -538,9 +539,9 @@ class ReservationService extends Service
         }
 
         if ($reservation->status !== 'completed') {
-            $this->throwExceptionJson('لا يمكن تقييم المركز إلا بعد اكتمال الحجز',403);
+            $this->throwExceptionJson('لا يمكن تقييم المركز إلا بعد اكتمال الحجز', 403);
         }
-    
+
         // التحقق من أن المستخدم لم يقيّم هذا الحجز من قبل
         $existingReview = Reviews::where('user_id', auth('sanctum')->id())
             ->where('reservation_id', $reservation->id)
@@ -669,5 +670,57 @@ class ReservationService extends Service
             $point->increment('points', $points);
         }
         return $points;
+    }
+
+    public function getUserReservationsForAdmin(User $user)
+    {
+        try {
+            $reservations = Reservation::with('center:id,name,logo', 'manageSubservices.subservice:id,name,image')
+                ->where('user_id', $user->id)
+                ->select('id', 'status', 'date', 'center_id')
+                ->get();
+
+            return $reservations->map(function ($reservation) {
+                return [
+                    'id' => $reservation->id,
+                    'status' => $reservation->status,
+                    'date' => $reservation->date,
+                    'center' => $reservation->center ? $reservation->center->only(['id', 'logo', 'name']) : null,
+                    'subservices' => $reservation->manageSubservices->map(function ($sub) {
+                        return [
+                            'name' => $sub->subservice->name ?? null,
+                        ];
+                    }),
+                ];
+            });
+        } catch (\Exception $e) {
+            Log::error('Error fetching user reservations for admin', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب حجوزات المستخدم');
+        }
+    }
+
+    public function adminCancelUserReservation(Reservation $reservation)
+    {
+        if (in_array($reservation->status, ['cancelled'])) {
+            $this->throwExceptionJson('تم إلغاء الحجز بالفعل', 422);
+        }
+
+        if(in_array($reservation->status , ['completed','incompleted'])){
+            $this->throwExceptionJson('لا يمكن إلغاء الحجز بعد اكتماله أو عند عدم حضور الزبون', 422);
+        }
+        try {
+            $reservation->update([
+                'status' => 'cancelled',
+                'reason_for_cancellation' => 'تم إلغاء الحجز من قبل الإدارة',
+            ]);
+
+            $this->notificationService->notiReservationCancellForCenter($reservation);
+            $this->notificationService->notiReservationCancellForUser($reservation);
+
+            return $reservation;
+        } catch (\Exception $e) {
+            Log::error('Error cancelling user reservation by admin', ['reservation_id' => $reservation->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء إلغاء الحجز');
+        }
     }
 }

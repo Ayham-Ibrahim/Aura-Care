@@ -15,6 +15,7 @@ use App\Http\Requests\Reservation\UserPointsRequest;
 use App\Models\Center\Center;
 use App\Models\Reservation;
 use App\Models\ReservationPaymentImage;
+use App\Models\User;
 use App\Services\ReservationService;
 use Illuminate\Http\Request;
 
@@ -154,5 +155,20 @@ class ReservationController extends Controller
     {
         $user = $this->reservationService->ReservationUserInfo($reservation);
         return $this->success($user, 'تم الحصول على بيانات المستخدم بنجاح');
+    }
+
+        /**
+     * Admin: return reservations for a specific user.
+     */
+    public function getUserReservationsForAdmin(User $user)
+    {
+        $reservations = $this->reservationService->getUserReservationsForAdmin($user);
+        return $this->success($reservations, 'تم جلب الحجوزات الخاصة بالمستخدم بنجاح');
+    }
+
+    public function adminCancelUserReservation(Reservation $reservation)
+    {
+        $res = $this->reservationService->adminCancelUserReservation($reservation);
+        return $this->success($res, 'تم إلغاء الحجز بنجاح');
     }
 }

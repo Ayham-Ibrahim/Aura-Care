@@ -510,7 +510,7 @@ class ReservationService extends Service
 
         $hoursDiff = Carbon::now()->diffInHours($reservation->date, false);
         if ($hoursDiff <= 24) {
-            $this->throwExceptionJson('لا يمكن إلغاء الحجز قبل أقل من 24 ساعة', 422);
+            $this->throwExceptionJson('لا يمكن الغاء الحجز في حين تبقى على الموعد اقل من 24 ساعة', 422);
         }
 
         DB::beginTransaction();

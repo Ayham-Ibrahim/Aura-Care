@@ -332,9 +332,8 @@ class UserManagementService extends Service
         $user = Auth::user();
         if ($data['fcm_token'] ?? false) {
             \App\Models\Device::removeByToken($user, $data['fcm_token']);
-            return "dfas";
         }
-        // $user->currentAccessToken()->delete();
+        $user->currentAccessToken()->delete();
         return ['message' => 'Logged out'];
     }
 

@@ -144,6 +144,11 @@ class CenterService extends Service
     {
         try {
             $center->update(['is_active' => !$center->is_active]);
+            
+            if (!$center->is_active && method_exists($center, 'tokens')) {
+                $center->tokens()->delete();
+            
+            }
             return $center;
         } catch (\Exception $e) {
             Log::error('Error toggling center active status', ['center_id' => $center->id, 'error' => $e->getMessage()]);

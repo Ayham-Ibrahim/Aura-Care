@@ -141,7 +141,7 @@ class CenterService extends Service
 
     public function rejectCenterDocuments(Center $center)
     {
-        $data = $this->updateCenterVerificationStatus($center, 'rejected');
+        $data = $this->updateCenterVerificationStatus($center, 'Unverified');
         $this->notificationService->notiCenterVerificationReject($center);
         return $data;
     }

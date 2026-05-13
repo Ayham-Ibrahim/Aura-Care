@@ -381,7 +381,7 @@ class ReservationService extends Service
             $amount = ($reservation->total_amount * $profit_percentage) / 100;
 
             DB::beginTransaction();
-            // $points = $this->addPointsToUser($reservation->user_id, $reservation->center_id, $reservation->id);
+            $points = $this->addPointsToUser($reservation->user_id, $reservation->center_id, $reservation->id);
             $reservation->wallet()->updateOrCreate([
                 'reservation_id' => $reservation->id,
             ], [
@@ -390,7 +390,9 @@ class ReservationService extends Service
                 'required_value' => $amount,
             ]);
             $reservation->update(['status' => 'completed']);
+
             DB::commit();
+            $this->notificationService->notiReservationCompleteForUser($reservation);
 
             return $reservation->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
         } catch (\Exception $e) {
@@ -424,6 +426,7 @@ class ReservationService extends Service
 
             $reservation->update(['status' => 'incompleted']);
             DB::commit();
+            $this->notificationService->notiReservationNoShowForUser($reservation);
 
             return $reservation;
         } catch (\Exception $e) {
@@ -566,6 +569,8 @@ class ReservationService extends Service
             $center->update(['rating' => $rate]);
 
             DB::commit();
+
+            $this->notificationService->notiCenterRatedByUser($reservation, $rating);
             return $center->fresh();
         } catch (\Exception $e) {
             DB::rollBack();

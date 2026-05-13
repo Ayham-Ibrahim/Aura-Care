@@ -28,10 +28,12 @@ class CenterService extends Service
 {
     use DistanceTrait;
     protected $workingHourService;
+    protected $notificationService;
 
-    public function __construct(WorkingHourService $workingHourService)
+    public function __construct(WorkingHourService $workingHourService, NotificationService $notificationService)
     {
         $this->workingHourService = $workingHourService;
+        $this->notificationService = $notificationService;
     }
 
     public function getAllCenters($perPage = 10)
@@ -132,12 +134,16 @@ class CenterService extends Service
 
     public function acceptCenterDocuments(Center $center)
     {
-        return $this->updateCenterVerificationStatus($center, 'accepted');
+        $data = $this->updateCenterVerificationStatus($center, 'accepted');
+        $this->notificationService->notiCenterVerificationAccept($center);
+        return $data;
     }
 
     public function rejectCenterDocuments(Center $center)
     {
-        return $this->updateCenterVerificationStatus($center, 'rejected');
+        $data = $this->updateCenterVerificationStatus($center, 'rejected');
+        $this->notificationService->notiCenterVerificationReject($center);
+        return $data;
     }
 
     public function toggleCenterActive(Center $center)

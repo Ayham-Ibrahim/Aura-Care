@@ -12,6 +12,7 @@ use App\Http\Requests\Center\StoreCenterDocumentsRequest;
 use App\Http\Requests\Center\UpdateCenterLocation;
 use App\Http\Requests\Center\UpdateCenterLogoRequest;
 use App\Models\Center\Center;
+use App\Models\Center\Work;
 use App\Models\Section;
 use App\Models\Service;
 use App\Models\Subservice;
@@ -41,7 +42,7 @@ class CenterController extends Controller
 
     public function show(Center  $center)
     {
-        $center->load('section:id,name','services:id,name');
+        $center->load('section:id,name', 'services:id,name');
         return $this->success($center, 'تم جلب المركز بنجاح');
     }
 
@@ -56,11 +57,16 @@ class CenterController extends Controller
         $this->centerService->deleteCenter($center);
         return $this->success(null, 'تم حذف المركز بنجاح', 204);
     }
-    
+
     public function getWorks(Center $center)
     {
         $works = $this->centerService->getCenterWorks($center);
         return $this->success($works, 'تم الحصول على أعمال المركز بنجاح');
+    }
+
+    public function deleteWork(Work $work) {
+        $work->delete();
+        return $this->success(null, 'تم حذف العمل بنجاح', 204);
     }
     // public function restore($id)
     // {
@@ -89,7 +95,7 @@ class CenterController extends Controller
     public function getSubservicesById(Subservice $subservice)
     {
         $subservices = $this->centerService->subservicesById($subservice);
-        if(!$subservices){
+        if (!$subservices) {
             return $this->notFoundResponse('لا يقدم المركز هذة الخدمة');
         }
         return $this->success($subservices, 'تم الحصول على الخدمات الفرعية بنجاح');
@@ -155,7 +161,7 @@ class CenterController extends Controller
     public function updateCenterLocation(UpdateCenterLocation $request)
     {
         $center = $this->centerService->updateCenterLocation($request->validated());
-        return $this->success($center->only(['location_h','location_v']), 'تم تحديث موقع المركز بنجاح');
+        return $this->success($center->only(['location_h', 'location_v']), 'تم تحديث موقع المركز بنجاح');
     }
 
     /**
@@ -230,7 +236,7 @@ class CenterController extends Controller
         return $this->success($data, 'تم جلب الخدمات الفرعية المحتوية على نقاط بنجاح');
     }
 
-    
+
 
     /**
      * Return centers that offer the specified service. Used by

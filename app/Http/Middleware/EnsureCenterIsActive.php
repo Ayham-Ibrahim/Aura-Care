@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Center\Center;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureCenterIsActive
@@ -12,7 +12,7 @@ class EnsureCenterIsActive
     public function handle(Request $request, Closure $next): Response
     {
         $data = $next($request);
-        $center = Auth::guard('center')->user();
+        $center = Center::where('phone', $request->phone)->first();
         if ($center && !$center->is_active) {
             return response()->json([
                 'success' => false,

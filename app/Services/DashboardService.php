@@ -158,7 +158,7 @@ class DashboardService extends Service
                 $query->where('is_active', true);
             })
             ->where('from', '<=', Carbon::now())
-            ->where('to', '>=', Carbon::now())
+            ->where('to', '>=', Carbon::now())->orderByDesc('from')
             ->get();
 
         return $subservice->map(function (ManageSubservice $manageSubservice) {

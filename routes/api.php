@@ -106,6 +106,7 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::patch('centers/{center}/documents/reject', [CenterController::class, 'rejectCenterDocuments']);
     Route::patch('centers/{center}/toggle-active', [CenterController::class, 'toggleActive']);
     Route::get('centers/{center}/works', [CenterController::class, 'getWorks']);
+    Route::delete('work/{work}/delete', [CenterController::class, 'deleteWork']);
     Route::get('wallets', [WalletController::class, 'getWalletForAdmin']);
     Route::get('wallets/{center}', [WalletController::class, 'getCenterWalletDetails']);
     Route::patch('wallets/{wallet}/paid', [WalletController::class, 'markWalletAsPaid']);

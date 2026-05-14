@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Center\Center;
 use App\Models\Reservation;
 use App\Models\User;
 
@@ -93,6 +94,66 @@ class NotificationService
             {$reservation->date->format('Y-m-d H:i')}
              ",
             ['reservation_id' => $reservation->id]
+        );
+    }
+    //الموافقة على توثيق السنتر
+    public function notiCenterVerificationAccept(Center $center)
+    {
+        return $this->fcmService->sendToCenter(
+            $center,
+            ' طلب التوثيق ',
+            "تمت الموافقة على توثيق مركزك بنجاح.",
+            []
+        );
+    }
+    //رفض توثيق السنتر
+    public function notiCenterVerificationReject(Center $center)
+    {
+        return $this->fcmService->sendToCenter(
+            $center,
+            ' طلب التوثيق ',
+            "تم رفض توثيق مركزك. ",
+            []
+        );
+    }
+
+    // ارسال اشعار للمستخدمين عند الحضور واكتمال الحجز
+    public function notiReservationCompleteForUser(Reservation $reservation)
+    {
+        return $this->fcmService->sendToUser(
+            $reservation->user,
+            'تم اكتمال الحجز',
+            "شكراً لحضورك حجزك بتاريخ:
+            {$reservation->date->format('Y-m-d H:i')}
+             ",
+            ['reservation_id' => $reservation->id]
+        );
+    }
+
+    // ارسال اشعار للمستخدم عند عدم الحضور
+    public function notiReservationNoShowForUser(Reservation $reservation)
+    {
+        return $this->fcmService->sendToUser(
+            $reservation->user,
+            'عدم الحضور',
+            "لم تحضر حجزك بتاريخ:
+            {$reservation->date->format('Y-m-d H:i')}
+             ",
+            ['reservation_id' => $reservation->id]
+        );
+    }
+
+    // ارسال اشعار للمركز عند يقوم المستخدم بتقييم المركز
+    public function notiCenterRatedByUser(Reservation $reservation, float $rating)
+    {
+        return $this->fcmService->sendToCenter(
+            $reservation->center,
+            'تقييم جديد',
+            "تم تقييم مركزك بحجز بتاريخ:
+            {$reservation->date->format('Y-m-d H:i')}
+            التقييم: {$rating} نجوم
+             ",
+            ['reservation_id' => $reservation->id, 'rating' => $rating]
         );
     }
 }

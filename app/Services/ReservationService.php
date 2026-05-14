@@ -59,6 +59,26 @@ class ReservationService extends Service
             $totalAmount = 0;
             $discount_value = 0;
 
+            if (!isset($data['offer']) && isset($data['subservices'])) {
+                $offers = Offer::with('manageSubservices')
+                    ->where('center_id', $center->id)
+                    ->where('from', '<=', Carbon::now())
+                    ->where('to', '>=', Carbon::now())
+                    ->get();
+                foreach ($offers as $offer2) {
+                    $offerSubserviceIds = $offer2->manageSubservices->pluck('id')->toArray();
+
+                    if (
+                        count($offerSubserviceIds) === count($data['subservices']) &&
+                        empty(array_diff($offerSubserviceIds, $data['subservices']))
+                    ) {
+                        $data['offer'] = $offer2->id;
+                        break;
+
+                    }
+                }
+            }
+
             if (!empty($data['offer'])) {
                 $discount_value = Offer::where('id', $data['offer'])->value('discount_value');
                 $data['subservices'] = Offer::find($data['offer'])->manageSubservices->pluck('id')->toArray();
@@ -124,6 +144,25 @@ class ReservationService extends Service
 
         if (!$center->is_active) {
             $this->throwExceptionJson('المركز غير متاح حالياً', 404);
+        }
+
+        if (!isset($data['offer']) && isset($data['manage_subservice'])) {
+            $offers = Offer::with('manageSubservices')
+                ->where('center_id', $center->id)
+                ->where('from', '<=', Carbon::now())
+                ->where('to', '>=', Carbon::now())
+                ->get();
+            foreach ($offers as $offer2) {
+                $offerSubserviceIds = $offer2->manageSubservices->pluck('id')->toArray();
+
+                if (
+                    count($offerSubserviceIds) === count($data['manage_subservice']) &&
+                    empty(array_diff($offerSubserviceIds, $data['manage_subservice']))
+                ) {
+                    $data['offer'] = $offer2->id;
+                    break;
+                }
+            }
         }
         if ($data['offer'] ?? false) {
             $offer = Offer::with('manageSubservices')->find($data['offer']);
@@ -710,7 +749,7 @@ class ReservationService extends Service
             $this->throwExceptionJson('تم إلغاء الحجز بالفعل', 422);
         }
 
-        if(in_array($reservation->status , ['completed','incompleted'])){
+        if (in_array($reservation->status, ['completed', 'incompleted'])) {
             $this->throwExceptionJson('لا يمكن إلغاء الحجز بعد اكتماله أو عند عدم حضور الزبون', 422);
         }
         try {

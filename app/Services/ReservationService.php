@@ -319,7 +319,7 @@ class ReservationService extends Service
 
     public function ReservationById(Reservation $reservation)
     {
-        $reservation->load('user:id,name,avatar,phone', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
+        $reservation->load('user:id,name,avatar,phone,sham_image,sham_code', 'manageSubservices:id,price,subservice_id', 'manageSubservices.subservice:id,name,image');
         $this->chackCenterAuth($reservation);
         $userPoints = point::select('points')->where('user_id', $reservation->user_id)
             ->where('center_id', $reservation->center_id)

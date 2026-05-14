@@ -129,10 +129,17 @@ class DashboardService extends Service
         }
 
         return $centers->map(function (Center $center) {
+            if (Auth::check()) {
+                $distance = $this->calculateDistance(Auth::user(), $center);
+            } else {
+                $distance = (float) 0;
+            }
             return [
                 'id' => $center->id,
                 'name' => $center->name,
                 'logo' => $center->logo,
+                'rating' => $center->rating,
+                'distance' => $distance,
             ];
         });
     }

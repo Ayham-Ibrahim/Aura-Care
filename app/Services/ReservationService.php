@@ -74,7 +74,6 @@ class ReservationService extends Service
                     ) {
                         $data['offer'] = $offer2->id;
                         break;
-
                     }
                 }
             }
@@ -668,6 +667,16 @@ class ReservationService extends Service
     public function confirmReservation(Reservation $reservation, $data)
     {
         $this->chackUserAuth($reservation);
+
+        // اذا كان الوقت محجوز من قبل حجز تاني لا تخليه ياكد ورجعلي خطى تم حجز الموعد من قبل شخص اخر
+        $reservations = Reservation::where('id', '!=', $reservation->id)
+            ->where('center_id', $reservation->center_id)
+            ->where('date', $reservation->date)
+            ->whereIn('status', ['processing', 'confirmed', 'partially_rejected'])
+            ->exists();
+        if ($reservations) {
+            $this->throwExceptionJson('عذراً، تم حجز هذا الموعد من قبل شخص آخر. يرجى انشاء حجز آخر.', 422);
+        }
 
         try {
             $imagePath = FileStorage::storeFile($data['image'], 'reservations/payments', 'img');

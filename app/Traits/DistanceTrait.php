@@ -11,8 +11,8 @@ trait DistanceTrait
     {
         $latFrom = $user->v_location;
         $lonFrom = $user->h_location;
-        $latTo = $center->location_h;
-        $lonTo = $center->location_v;
+        $latTo = $center->location_v;
+        $lonTo = $center->location_h;
 
         if ($latFrom === null || $lonFrom === null || $latTo === null || $lonTo === null) {
             return (float) 0; // Return 0 if any of the coordinates are missing
@@ -34,6 +34,6 @@ trait DistanceTrait
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
-        return round($earthRadiusKm * $c, 2);
+        return round($earthRadiusKm * $c * 1000, 2);
     }
 }

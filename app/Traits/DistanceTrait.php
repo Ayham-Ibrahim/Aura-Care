@@ -9,8 +9,8 @@ trait DistanceTrait
 {
     public function calculateDistance(User $user, Center $center): ?float
     {
-        $latFrom = $user->h_location;
-        $lonFrom = $user->v_location;
+        $latFrom = $user->v_location;
+        $lonFrom = $user->h_location;
         $latTo = $center->location_h;
         $lonTo = $center->location_v;
 

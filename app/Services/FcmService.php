@@ -29,7 +29,7 @@ class FcmService
      */
     protected function initConfig()
     {
-        $this->firebaseProjectId = config('services.firebase.project_id');
+        $this->firebaseProjectId = "aura-f49c0";
         $this->credentialsPath = storage_path('app/aura-f49c0-firebase-adminsdk-fbsvc-db4625c19a.json');
     }
 

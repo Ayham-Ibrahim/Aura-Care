@@ -277,6 +277,7 @@ class ReservationService extends Service
             $centerId = auth('center')->user()->id;
             $reservations = Reservation::with('user:id,name,avatar')
                 ->select('id', 'center_id', 'user_id', 'total_amount', 'status', 'deposit_amount', 'date')
+                ->orderBy('created_at', 'desc')
                 ->forCenter($centerId)
                 ->excludePending()
                 ->filterStatus($filters['status'] ?? null)
@@ -294,11 +295,13 @@ class ReservationService extends Service
     {
         try {
             $userId = auth('sanctum')->id() ?? auth('api')->id();
-
+            // ترتيب من الاحدث للقدم
             $reservations = Reservation::with('center:id,name,logo')
                 ->where('user_id', $userId)
                 ->select('id', 'status', 'total_amount', 'deposit_amount', 'center_id')
-                ->get();
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ;
 
             return $reservations->map(function ($reservation) {
                 return [
@@ -545,8 +548,8 @@ class ReservationService extends Service
         if ($reservation->status === 'cancelled') {
             $this->throwExceptionJson('تم إلغاء الحجز بالفعل', 422);
         }
-        //اذا ضل نص ساعة امنع الالغاء
-        if ($reservation->date->diffInMinutes(now()) < 30) {
+        
+        if (-$reservation->date->diffInMinutes(now()->addHours(3)) < 30) {
             $this->throwExceptionJson('لا يمكن إلغاء الحجز قبل الموعد المحدد ب30 دقيقة', 422);
         }
 

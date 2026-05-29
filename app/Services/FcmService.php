@@ -143,7 +143,11 @@ class FcmService
             // Log::info("FCM sent to Center #{$center->id}");
             return true;
         } 
-            Log::error("Failed to send FCM to Center #{$center->id}");
+            Log::error("Failed to send FCM to Center #{$center->id}
+            #token: {$token}
+            #error: {$this->sendToToken($token, $title, $body, $data)}
+            
+            ");
 
         return false;
         

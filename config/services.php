@@ -37,7 +37,7 @@ return [
 
     'fcm' => [
         'project_id' => env('FIREBASE_PROJECT_ID'),
-        'credentialsPath' => storage_path('app/aura-care-85fa7-firebase-adminsdk-fbsvc-7f0036a65a.json'),
+        'credentialsPath' => storage_path('app/aura-f49c0-firebase-adminsdk-fbsvc-db4625c19a.json'),
     ],
 
 ];

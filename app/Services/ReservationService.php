@@ -548,8 +548,8 @@ class ReservationService extends Service
         if ($reservation->status === 'cancelled') {
             $this->throwExceptionJson('تم إلغاء الحجز بالفعل', 422);
         }
-        //اذا ضل نص ساعة امنع الالغاء
-        if ($reservation->date->diffInMinutes(now()) < 30) {
+        
+        if (-$reservation->date->diffInMinutes(now()->addHours(3)) < 30) {
             $this->throwExceptionJson('لا يمكن إلغاء الحجز قبل الموعد المحدد ب30 دقيقة', 422);
         }
 

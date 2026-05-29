@@ -210,6 +210,6 @@ class Center extends Model
 
     public function getFcmToken()
     {
-        return Device::getTokens($this);
+        return Device::getTokens($this)->first();
     }
 }

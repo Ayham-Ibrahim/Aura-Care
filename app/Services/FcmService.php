@@ -139,18 +139,17 @@ class FcmService
             Log::warning("Center #{$center->id} has no FCM token");
             return false;
         }
-        if($this->sendToToken($token, $title, $body, $data)){
-            // Log::info("FCM sent to Center #{$center->id}");
+
+        $sent = $this->sendToToken($token, $title, $body, $data);
+
+        if ($sent) {
+            Log::info("FCM sent to Center #{$center->id}", ['token' => $token]);
             return true;
-        } 
-            Log::error("Failed to send FCM to Center #{$center->id}
-            #token: {$token}
-            #error: {$this->sendToToken($token, $title, $body, $data)}
-            
-            ");
+        }
+
+        Log::error("Failed to send FCM to Center #{$center->id}", ['token' => $token]);
 
         return false;
-        
     }
     /**
      * Send notification to multiple tokens (for broadcast notifications).

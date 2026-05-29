@@ -545,10 +545,9 @@ class ReservationService extends Service
         if ($reservation->status === 'cancelled') {
             $this->throwExceptionJson('تم إلغاء الحجز بالفعل', 422);
         }
-
-        $hoursDiff = Carbon::now()->diffInHours($reservation->date, false);
-        if ($hoursDiff <= 24) {
-            $this->throwExceptionJson('لا يمكن الغاء الحجز في حين تبقى على الموعد اقل من 24 ساعة', 422);
+        //اذا ضل نص ساعة امنع الالغاء
+        if ($reservation->date->diffInMinutes(now()) < 30) {
+            $this->throwExceptionJson('لا يمكن إلغاء الحجز قبل الموعد المحدد ب30 دقيقة', 422);
         }
 
         DB::beginTransaction();

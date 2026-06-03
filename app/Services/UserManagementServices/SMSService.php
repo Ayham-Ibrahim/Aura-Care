@@ -28,6 +28,9 @@ class SMSService
             return false;
         }
 
+        // الرقم رح يجي بهذةة الصيغة : +963911112222  انا بدي شيل ال+
+        $phoneNumber = preg_replace('/^\+/', '', trim($phoneNumber));
+
         // 2. تحقق من صيغة الرقم
         if (!preg_match('/^963[0-9]{9}$/', $phoneNumber)) {
             Log::error('Invalid phone number', ['phone' => $phoneNumber]);

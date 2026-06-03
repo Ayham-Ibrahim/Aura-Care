@@ -110,11 +110,11 @@ class OTPService
      */
     protected function sendOTP($phone, $otpCode, $type = 'register')
     {
-        // $channel = config('hypermsg.otp_channel', 'telegram');
+        $channel = config('hypermsg.otp_channel', 'telegram');
 
-        // if ($channel === 'sms') {
-        //     return $this->smsService->sendOTP($phone, $otpCode, $type);
-        // }
+        if ($channel === 'sms') {
+            return $this->smsService->sendOTP($phone, $otpCode, $type);
+        }
 
         return $this->telegramService->sendOTP($phone, $otpCode, $type);
     }

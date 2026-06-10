@@ -33,6 +33,7 @@ class WalletService extends Service
                 }
             })
             ->where('center_id', $center->id)
+            ->where('is_paid', false)
             ->get();
 
             $reservations = $center_wallet->pluck('reservation');

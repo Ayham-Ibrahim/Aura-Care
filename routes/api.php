@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\WalletController;
 use App\Http\Middleware\EnsureCenterIsActive;
+use App\Http\Middleware\IsAdmin;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 
 // Route::get('/user', function (Request $request) {
@@ -30,7 +31,6 @@ use Symfony\Component\HttpKernel\Attribute\AsController;
 | Authentication Routes
 |--------------------------------------------------------------------------
 */
-
 Route::post('register', [UserManagementController::class, 'register']);
 Route::post('confirm-registration', [UserManagementController::class, 'confirmRegistration']);
 
@@ -55,7 +55,7 @@ Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementCont
 
 //################################################################
 //بدي ضيف مدلوير الadmin مع الauth
-Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum'])->middleware(IsAdmin::class)->group(function () {
     Route::get('sections/services', [SectionController::class, 'withServices']);
 
     /*

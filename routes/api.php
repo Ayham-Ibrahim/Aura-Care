@@ -7,6 +7,7 @@ use App\Http\Controllers\AdController;
 use App\Http\Controllers\BroadcastNotificationController;
 use App\Http\Controllers\Center\WorkController;
 use App\Http\Controllers\Center\WorkingHourController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserManagementControllers\CenterController;
 use App\Http\Controllers\UserManagementControllers\UserController;
@@ -157,10 +158,11 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('reservations/{reservation}', [ReservationController::class, 'getUserReservationById']);
     Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'cancelReservationForUser']);
     Route::post('reservations/{reservation}/center/{center}/rate', [ReservationController::class, 'ratingCenter']);
+    
 
-
-
-
+    Route::post('reservation/{reservation}/comment', [CommentController::class, 'store']);
+    Route::put('comment/{comment}', [CommentController::class, 'update']);
+    Route::delete('comment/{comment}', [CommentController::class, 'destroy']);
 
 
     // User device (multi-device support)

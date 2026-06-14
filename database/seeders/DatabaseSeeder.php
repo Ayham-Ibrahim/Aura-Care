@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             CenterWorkingHoursSeeder::class,
             CenterWorkSeeder::class,
             ReservationSeeder::class,
+            CommentSeeder::class,
         ]);
     }
 }

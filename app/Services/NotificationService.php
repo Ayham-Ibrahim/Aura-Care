@@ -183,7 +183,7 @@ class NotificationService
         return $this->fcmService->sendToUser(
             $comment->user,
             'رد جديد على تعليقك',
-            "لديك رد جديد على تعليقك بتاريخ: {$comment->reply->created_at->format('Y-m-d H:i')}",
+            "لديك رد جديد على تعليقك بتاريخ: {$comment->created_at->format('Y-m-d H:i')}",
             ['comment_id' => $comment->id, 'reply_id' => $comment->reply->id]
         );
     }

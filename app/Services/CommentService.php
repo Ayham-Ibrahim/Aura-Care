@@ -8,10 +8,16 @@ use App\Models\CommentReply;
 use App\Models\CommentReport;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CommentService extends Service
 {
+    protected NotificationService $notificationService;
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     public function store(Reservation $reservation, array $data)
     {
         if ($reservation->user_id !== Auth::id()) {
@@ -34,6 +40,8 @@ class CommentService extends Service
                 'is_edited' => false,
             ]);
 
+            $this->notificationService->notiCommentStoreForCenter($comment);
+
             return $comment;
         } catch (\Exception $e) {
             Log::error('Error creating reservation comment', ['reservation_id' => $reservation->id, 'user_id' => Auth::id(), 'error' => $e->getMessage()]);
@@ -55,6 +63,8 @@ class CommentService extends Service
                 'text' => $data['text'],
                 'is_edited' => true,
             ]);
+
+            $this->notificationService->notiCommentUpdateForCenter(Comment::where('id', $comment->id)->with('center')->first());
             return $comment;
         } catch (\Exception $e) {
             Log::error('Error updating comment', ['comment_id' => $comment->id, 'user_id' => Auth::id(), 'error' => $e->getMessage()]);
@@ -147,13 +157,17 @@ class CommentService extends Service
 
         try {
             $comment = $report->comment;
+            DB::beginTransaction();
             if ($comment) {
                 $comment->delete();
             }
             $report->update(['status' => CommentReport::STATUS_APPROVED]);
+            DB::commit();
+            $this->notificationService->notiCommentReportApproveForCenter($report);
 
             return $report->load(['comment.user:id,name,avatar', 'center:id,name']);
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Error approving comment report', ['report_id' => $report->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء الموافقة على البلاغ');
         }
@@ -173,11 +187,13 @@ class CommentService extends Service
         }
 
         try {
-            return CommentReply::create([
+            $reply = CommentReply::create([
                 'comment_id' => $comment->id,
                 'center_id' => $center->id,
                 'reply' => $data['reply'],
             ]);
+            $this->notificationService->notiCommentReplyStoreForUser($comment);
+            return $reply;
         } catch (\Exception $e) {
             Log::error('Error creating center comment reply', ['comment_id' => $comment->id, 'center_id' => $center->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء إضافة رد المركز');

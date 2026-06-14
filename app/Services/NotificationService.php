@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Center\Center;
+use App\Models\Comment;
+use App\Models\CommentReport;
 use App\Models\Reservation;
 use App\Models\User;
 
@@ -154,6 +156,54 @@ class NotificationService
             التقييم: {$rating} نجوم
              ",
             ['reservation_id' => $reservation->id, 'rating' => $rating]
+        );
+    }
+
+    public function notiCommentStoreForCenter(Comment $comment)
+    {
+        return $this->fcmService->sendToCenter(
+            $comment->center,
+            'تعليق جديد',
+            "لديك تعليق جديد بتاريخ: {$comment->created_at->format('Y-m-d H:i')}",
+            ['comment_id' => $comment->id]
+        );
+    }
+    public function notiCommentUpdateForCenter(Comment $comment)
+    {
+        return $this->fcmService->sendToCenter(
+            $comment->center,
+            'تحديث تعليق',
+            "تم تعديل تعليق بتاريخ: {$comment->updated_at->format('Y-m-d H:i')}",
+            ['comment_id' => $comment->id]
+        );
+    }
+
+    public function notiCommentReplyStoreForUser(Comment $comment)
+    {
+        return $this->fcmService->sendToUser(
+            $comment->user,
+            'رد جديد على تعليقك',
+            "لديك رد جديد على تعليقك بتاريخ: {$comment->reply->created_at->format('Y-m-d H:i')}",
+            ['comment_id' => $comment->id, 'reply_id' => $comment->reply->id]
+        );
+    }
+
+    public function notiCommentReportForAdmin(Comment $comment)
+    {
+        return $this->fcmService->sendToUser(
+            User::where('is_admin', true)->first(),
+            'بلاغ جديد',
+            "تم تقديم بلاغ على تعليق بتاريخ: {$comment->created_at->format('Y-m-d H:i')}",
+            ['comment_id' => $comment->id]
+        );
+    }
+
+    public function notiCommentReportApproveForCenter(CommentReport $report)
+    {
+        return $this->fcmService->sendToCenter(
+            $report->center,
+            'تحديث حالة البلاغ',
+            "تم الموافقة على البلاغ المقدم بتاريخ: {$report->created_at->format('Y-m-d H:i')} وتم حذف التعليق",
         );
     }
 }

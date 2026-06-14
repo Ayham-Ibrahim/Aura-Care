@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Comment\StoreCenterReplyRequest;
+use App\Http\Requests\Comment\StoreCommentReportRequest;
 use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCenterReplyRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
 use App\Models\Center\Center;
 use App\Models\Comment;
 use App\Models\CommentReply;
+use App\Models\CommentReport;
 use App\Models\Reservation;
 use App\Services\Center\CommentReplyService;
 use App\Services\CommentService;
@@ -86,5 +88,35 @@ class CommentController extends Controller
     {
         $this->commentService->deleteCommentForAdmin($comment);
         return $this->success(null, 'تم حذف التعليق بنجاح', 204);
+    }
+
+    public function reportAComment(Comment $comment, StoreCommentReportRequest $request)
+    {
+        $report = $this->commentService->reportComment($comment, $request->validated());
+        return $this->success($report, 'تم إرسال البلاغ بنجاح', 201);
+    }
+
+    public function getAllReports()
+    {
+        $reports = $this->commentService->getAllCommentReports();
+        return $this->success($reports, 'تم جلب البلاغات بنجاح', 200);
+    }
+
+    public function getCenterReports(Center $center)
+    {
+        $reports = $this->commentService->getCenterCommentReports($center);
+        return $this->success($reports, 'تم جلب بلاغات المركز بنجاح', 200);
+    }
+
+    public function rejectReport(CommentReport $report)
+    {
+        $updatedReport = $this->commentService->rejectCommentReport($report);
+        return $this->success($updatedReport, 'تم رفض البلاغ بنجاح', 200);
+    }
+
+    public function approveReport(CommentReport $report)
+    {
+        $updatedReport = $this->commentService->approveCommentReport($report);
+        return $this->success($updatedReport, 'تم الموافقة على البلاغ وتنظيف التعليق', 200);
     }
 }

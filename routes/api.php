@@ -56,7 +56,7 @@ Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementCont
 
 //################################################################
 //بدي ضيف مدلوير الadmin مع الauth
-Route::prefix('admin')->middleware(['auth:sanctum'])->middleware(IsAdmin::class)->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
     Route::get('sections/services', [SectionController::class, 'withServices']);
 
     /*
@@ -117,6 +117,10 @@ Route::prefix('admin')->middleware(['auth:sanctum'])->middleware(IsAdmin::class)
     Route::get('centers/{center}/comments', [CommentController::class, 'getCenterComment']);
     Route::get('comments/{comment}', [CommentController::class, 'getCommentById']);
     Route::delete('comments/{comment}', [CommentController::class, 'deletecomment']);
+    Route::get('comment-reports', [CommentController::class, 'getAllReports']);
+    Route::get('centers/{center}/comment-reports', [CommentController::class, 'getCenterReports']);
+    Route::patch('comment-reports/{report}/reject', [CommentController::class, 'rejectReport']);
+    Route::patch('comment-reports/{report}/approve', [CommentController::class, 'approveReport']);
 
     Route::apiResource('ads', AdController::class);
 
@@ -245,6 +249,7 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::put('comments/replies/{reply}', [CommentController::class, 'updateCenterReply']);
     Route::delete('comments/replies/{reply}', [CommentController::class, 'deleteCenterReply']);
     Route::get('comments', [CommentController::class, 'getCommentsForCenter']);
+    Route::post('comments/{comment}/report', [CommentController::class, 'reportAComment']);
 
     // Center document uploads for verification
     Route::post('documents', [CenterController::class, 'uploadDocuments']);

@@ -41,4 +41,9 @@ class Comment extends Model
     {
         return $this->hasMany(CommentReply::class, 'comment_id');
     }
+
+    public function reports()
+    {
+        return $this->hasMany(\App\Models\CommentReport::class, 'comment_id');
+    }
 }

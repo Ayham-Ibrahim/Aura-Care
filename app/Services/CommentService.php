@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Center\Center;
 use App\Models\Comment;
 use App\Models\CommentReply;
+use App\Models\CommentReport;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -73,6 +74,88 @@ class CommentService extends Service
         } catch (\Exception $e) {
             Log::error('Error deleting comment', ['comment_id' => $comment->id, 'user_id' => Auth::id(), 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء حذف التعليق');
+        }
+    }
+
+    public function reportComment(Comment $comment, array $data)
+    {
+        if ($comment->trashed()) {
+            $this->throwExceptionJson('التعليق غير متاح للتبليغ', 404);
+        }
+
+        try {
+            return CommentReport::create([
+                'comment_id' => $comment->id,
+                'center_id' => $comment->center_id,
+                'reason' => $data['reason'],
+                'status' => CommentReport::STATUS_PENDING,
+                'created_at' => now(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error creating comment report', ['comment_id' => $comment->id, 'user_id' => Auth::id(), 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء إرسال البلاغ');
+        }
+    }
+
+    public function getAllCommentReports()
+    {
+        try {
+            return CommentReport::with(['comment.user:id,name,avatar', 'center:id,name'])
+                ->orderByDesc('created_at')
+                ->where('status', CommentReport::STATUS_PENDING)
+                ->get();
+        } catch (\Exception $e) {
+            Log::error('Error fetching comment reports', ['error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب البلاغات');
+        }
+    }
+
+    public function getCenterCommentReports(Center $center)
+    {
+        try {
+            return CommentReport::with(['comment.user:id,name,avatar', 'center:id,name'])
+                ->where('center_id', $center->id)
+                ->where('status', CommentReport::STATUS_PENDING)
+                ->orderByDesc('created_at')
+                ->get();
+        } catch (\Exception $e) {
+            Log::error('Error fetching center comment reports', ['center_id' => $center->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب بلاغات المركز');
+        }
+    }
+
+    public function rejectCommentReport(CommentReport $report)
+    {
+        if ($report->status !== CommentReport::STATUS_PENDING) {
+            $this->throwExceptionJson('لا يمكن رفض البلاغ في هذه الحالة', 400);
+        }
+
+        try {
+            $report->update(['status' => CommentReport::STATUS_REJECTED]);
+            return $report;
+        } catch (\Exception $e) {
+            Log::error('Error rejecting comment report', ['report_id' => $report->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء رفض البلاغ');
+        }
+    }
+
+    public function approveCommentReport(CommentReport $report)
+    {
+        if ($report->status !== CommentReport::STATUS_PENDING) {
+            $this->throwExceptionJson('لا يمكن الموافقة على البلاغ في هذه الحالة', 400);
+        }
+
+        try {
+            $comment = $report->comment;
+            if ($comment) {
+                $comment->delete();
+            }
+            $report->update(['status' => CommentReport::STATUS_APPROVED]);
+
+            return $report->load(['comment.user:id,name,avatar', 'center:id,name']);
+        } catch (\Exception $e) {
+            Log::error('Error approving comment report', ['report_id' => $report->id, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء الموافقة على البلاغ');
         }
     }
 

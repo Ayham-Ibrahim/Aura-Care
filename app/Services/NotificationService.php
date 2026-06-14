@@ -184,7 +184,7 @@ class NotificationService
             $comment->user,
             'رد جديد على تعليقك',
             "لديك رد جديد على تعليقك بتاريخ: {$comment->created_at->format('Y-m-d H:i')}",
-            ['comment_id' => $comment->id, 'reply_id' => $comment->reply->id]
+            ['comment_id' => $comment->id]
         );
     }
 

@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Comment\StoreCenterReplyRequest;
 use App\Http\Requests\Comment\StoreCommentRequest;
+use App\Http\Requests\Comment\UpdateCenterReplyRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
 use App\Models\Comment;
-use App\Services\CommentService;
+use App\Models\CommentReply;
 use App\Models\Reservation;
+use App\Services\Center\CommentReplyService;
+use App\Services\CommentService;
 
 class CommentController extends Controller
 {
@@ -33,5 +37,23 @@ class CommentController extends Controller
     {
         $this->commentService->deleteComment($comment);
         return $this->success(null,'تم حذف التعليق بنجاح',204);
+    }
+
+    public function storeCenterReply(Comment $comment ,StoreCenterReplyRequest $request)
+    {
+        $reply = $this->commentService->storeCenterReply($comment, $request->validated());
+        return $this->success($reply, 'تم إضافة رد المركز بنجاح', 201);
+    }
+
+    public function updateCenterReply(UpdateCenterReplyRequest $request, CommentReply $reply)
+    {
+        $updatedReply = $this->commentService->updateCenterReply($reply, $request->validated());
+        return $this->success($updatedReply, 'تم تعديل رد المركز بنجاح', 200);
+    }
+
+    public function deleteCenterReply(CommentReply $reply)
+    {
+        $this->commentService->deleteCenterReply($reply);
+        return $this->success(null, 'تم حذف رد المركز بنجاح', 204);
     }
 }

@@ -235,6 +235,11 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::put('working-hours', [WorkingHourController::class, 'update']);
     Route::post('working-hours/reset', [WorkingHourController::class, 'resetToDefault']);
 
+    // Center comment replies
+    Route::post('comments/{comment}/reply', [CommentController::class, 'storeCenterReply']);
+    Route::put('comments/replies/{reply}', [CommentController::class, 'updateCenterReply']);
+    Route::delete('comments/replies/{reply}', [CommentController::class, 'deleteCenterReply']);
+
     // Center document uploads for verification
     Route::post('documents', [CenterController::class, 'uploadDocuments']);
 

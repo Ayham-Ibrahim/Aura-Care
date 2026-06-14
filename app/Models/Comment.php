@@ -36,4 +36,9 @@ class Comment extends Model
     {
         return $this->belongsTo(\App\Models\Center\Center::class);
     }
+
+    public function replies()
+    {
+        return $this->hasMany(CommentReply::class, 'comment_id');
+    }
 }

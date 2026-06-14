@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Center\Center;
+use App\Models\Comment;
 use App\Models\ReservationPaymentImage;
 use Illuminate\Database\Eloquent\Model;
 
@@ -61,6 +62,11 @@ class Reservation extends Model
     public function paymentImages()
     {
         return $this->hasMany(ReservationPaymentImage::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 
     public function scopeForCenter($query, int $centerId)

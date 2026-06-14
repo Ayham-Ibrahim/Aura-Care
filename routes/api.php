@@ -7,6 +7,7 @@ use App\Http\Controllers\AdController;
 use App\Http\Controllers\BroadcastNotificationController;
 use App\Http\Controllers\Center\WorkController;
 use App\Http\Controllers\Center\WorkingHourController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserManagementControllers\CenterController;
 use App\Http\Controllers\UserManagementControllers\UserController;
@@ -55,7 +56,7 @@ Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementCont
 
 //################################################################
 //بدي ضيف مدلوير الadmin مع الauth
-Route::prefix('admin')->middleware(['auth:sanctum'])->middleware(IsAdmin::class)->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
     Route::get('sections/services', [SectionController::class, 'withServices']);
 
     /*
@@ -113,6 +114,14 @@ Route::prefix('admin')->middleware(['auth:sanctum'])->middleware(IsAdmin::class)
     Route::patch('centers/{center}/wallets/paid', [WalletController::class, 'markCenterWalletsAsPaid']);
     // Route::post('centers/{id}/restore', [CenterController::class, 'restore']);
 
+    Route::get('centers/{center}/comments', [CommentController::class, 'getCenterComment']);
+    Route::get('comments/{comment}', [CommentController::class, 'getCommentById']);
+    Route::delete('comments/{comment}', [CommentController::class, 'deletecomment']);
+    Route::get('comment-reports', [CommentController::class, 'getAllReports']);
+    Route::get('centers/{center}/comment-reports', [CommentController::class, 'getCenterReports']);
+    Route::patch('comment-reports/{report}/reject', [CommentController::class, 'rejectReport']);
+    Route::patch('comment-reports/{report}/approve', [CommentController::class, 'approveReport']);
+
     Route::apiResource('ads', AdController::class);
 
     Route::apiResource('reservations', ReservationController::class);
@@ -157,10 +166,13 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::get('reservations/{reservation}', [ReservationController::class, 'getUserReservationById']);
     Route::patch('reservations/{reservation}/cancel', [ReservationController::class, 'cancelReservationForUser']);
     Route::post('reservations/{reservation}/center/{center}/rate', [ReservationController::class, 'ratingCenter']);
+    
 
-
-
-
+    Route::post('reservation/{reservation}/comment', [CommentController::class, 'store']);
+    Route::put('comment/{comment}', [CommentController::class, 'update']);
+    Route::delete('comment/{comment}', [CommentController::class, 'destroy']);
+    Route::get('comment/{comment}', [CommentController::class, 'getCommentByIdForUser']);
+    Route::get('comments/{center}', [CommentController::class, 'getCommentsForUser']);
 
 
     // User device (multi-device support)
@@ -232,6 +244,14 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::get('working-hours', [WorkingHourController::class, 'index']);
     Route::put('working-hours', [WorkingHourController::class, 'update']);
     Route::post('working-hours/reset', [WorkingHourController::class, 'resetToDefault']);
+
+    // Center comment endpoints
+    Route::post('comments/{comment}/reply', [CommentController::class, 'storeCenterReply']);
+    Route::put('comments/replies/{reply}', [CommentController::class, 'updateCenterReply']);
+    Route::delete('comments/replies/{reply}', [CommentController::class, 'deleteCenterReply']);
+    Route::get('comments', [CommentController::class, 'getCommentsForCenter']);
+    Route::get('comments/{comment}', [CommentController::class, 'getCommentByIdForCenter']);
+    Route::post('comments/{comment}/report', [CommentController::class, 'reportAComment']);
 
     // Center document uploads for verification
     Route::post('documents', [CenterController::class, 'uploadDocuments']);

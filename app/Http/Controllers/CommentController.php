@@ -69,4 +69,22 @@ class CommentController extends Controller
         $comments = $this->commentService->getCommentsForCenter();
         return $this->success($comments, 'تم جلب التعليقات بنجاح', 200);
     }
+
+    public function getCenterComment(Center $center)
+    {
+        $comments = $this->commentService->getCenterCommentsForAdmin($center);
+        return $this->success($comments, 'تم جلب تعليقات المركز بنجاح', 200);
+    }
+
+    public function getCommentById(Comment $comment)
+    {
+        $commentData = $this->commentService->getCommentByIdForAdmin($comment);
+        return $this->success($commentData, 'تم جلب التعليق بنجاح', 200);
+    }
+
+    public function deletecomment(Comment $comment)
+    {
+        $this->commentService->deleteCommentForAdmin($comment);
+        return $this->success(null, 'تم حذف التعليق بنجاح', 204);
+    }
 }

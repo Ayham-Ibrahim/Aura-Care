@@ -114,6 +114,10 @@ Route::prefix('admin')->middleware(['auth:sanctum'])->middleware(IsAdmin::class)
     Route::patch('centers/{center}/wallets/paid', [WalletController::class, 'markCenterWalletsAsPaid']);
     // Route::post('centers/{id}/restore', [CenterController::class, 'restore']);
 
+    Route::get('centers/{center}/comments', [CommentController::class, 'getCenterComment']);
+    Route::get('comments/{comment}', [CommentController::class, 'getCommentById']);
+    Route::delete('comments/{comment}', [CommentController::class, 'deletecomment']);
+
     Route::apiResource('ads', AdController::class);
 
     Route::apiResource('reservations', ReservationController::class);

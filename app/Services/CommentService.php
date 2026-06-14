@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Center\Center;
 use App\Models\Comment;
 use App\Models\CommentReply;
 use App\Models\Reservation;
@@ -133,6 +134,93 @@ class CommentService extends Service
         } catch (\Exception $e) {
             Log::error('Error deleting center comment reply', ['reply_id' => $reply->id, 'center_id' => $center->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء حذف رد المركز');
+        }
+    }
+
+    public function getComments(Center $center)
+    {
+        try {
+            $comments = Comment::with(['user:id,name,avatar', 'replies','center:id,name','reservation.manageSubservices.subservice'])
+                ->where('center_id', $center->id)
+                ->get();
+            return $comments->map(function ($comment) {
+                return [
+                    'id' => $comment->id,
+                    'user_has_this_comment' => $comment->user_id === Auth::id() ,
+                    'text' => $comment->text,
+                    'is_edited' => $comment->is_edited,
+                    'created_at' => $comment->created_at,
+                    'user' => [
+                        'id' => $comment->user->id,
+                        'name' => $comment->user->name,
+                        'avatar' => $comment->user->avatar,
+                    ],
+                    'subservices' => $comment->reservation && $comment->reservation->manageSubservices
+                        ? $comment->reservation->manageSubservices->map(function ($manageSubservice) {
+                            return [
+                                'id' => $manageSubservice->subservice_id,
+                                'name' => $manageSubservice->subservice ? $manageSubservice->subservice->name : null,
+                                // 'image' => $manageSubservice->subservice ? $manageSubservice->subservice->image : null,
+                            ];
+                        })
+                        : [],
+                    'replies' => $comment->replies->map(function ($reply,) use ($comment) {
+                        return [
+                            'id' => $reply->id,
+                            'reply' => $reply->reply,
+                            'center_name' => $comment->center->name,
+                            'created_at' => $reply->created_at,
+                        ];
+                    }),
+                ];
+            });
+        } catch (\Exception $e) {
+            Log::error('Error fetching comments', ['error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب التعليقات');
+        }
+    }
+
+    public function getCommentsForCenter()
+    {
+        try {
+            $center_id =  Auth::guard('center')->user()->id;
+            $commets = Comment::with(['user:id,name,avatar', 'replies','center:id,name','reservation.manageSubservices.subservice'])
+                ->where('center_id',$center_id)
+                ->get();
+
+            return $commets->map(function ($comment) {
+                return [
+                    'id' => $comment->id,
+                    'text' => $comment->text,
+                    'is_edited' => $comment->is_edited,
+                    'created_at' => $comment->created_at,
+                    'user' => [
+                        'id' => $comment->user->id,
+                        'name' => $comment->user->name,
+                        'avatar' => $comment->user->avatar,
+                    ],
+                    'subservices' => $comment->reservation && $comment->reservation->manageSubservices
+                        ? $comment->reservation->manageSubservices->map(function ($manageSubservice) {
+                            return [
+                                'id' => $manageSubservice->subservice_id,
+                                'name' => $manageSubservice->subservice ? $manageSubservice->subservice->name : null,
+                                // 'image' => $manageSubservice->subservice ? $manageSubservice->subservice->image : null,
+                            ];
+                        })
+                        : [],
+                    'replies' => $comment->replies->map(function ($reply,) use ($comment) {
+                        return [
+                            'id' => $reply->id,
+                            'reply' => $reply->reply,
+                            'center_name' => $comment->center->name,
+                            'created_at' => $reply->created_at,
+                        ];
+                    }),
+                ];
+            });
+        } catch (\Exception $e) {
+            Log::error('Error fetching comments for center', ['center_id' => Auth::guard('center')->id(), 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء جلب تعليقات المركز');
         }
     }
 }

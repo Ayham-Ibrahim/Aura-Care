@@ -163,6 +163,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::post('reservation/{reservation}/comment', [CommentController::class, 'store']);
     Route::put('comment/{comment}', [CommentController::class, 'update']);
     Route::delete('comment/{comment}', [CommentController::class, 'destroy']);
+    Route::get('comments/{center}', [CommentController::class, 'getCommentsForUser']);
 
 
     // User device (multi-device support)
@@ -239,6 +240,7 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::post('comments/{comment}/reply', [CommentController::class, 'storeCenterReply']);
     Route::put('comments/replies/{reply}', [CommentController::class, 'updateCenterReply']);
     Route::delete('comments/replies/{reply}', [CommentController::class, 'deleteCenterReply']);
+    Route::get('comments', [CommentController::class, 'getCommentsForCenter']);
 
     // Center document uploads for verification
     Route::post('documents', [CenterController::class, 'uploadDocuments']);

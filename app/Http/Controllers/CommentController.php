@@ -6,6 +6,7 @@ use App\Http\Requests\Comment\StoreCenterReplyRequest;
 use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCenterReplyRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
+use App\Models\Center\Center;
 use App\Models\Comment;
 use App\Models\CommentReply;
 use App\Models\Reservation;
@@ -55,5 +56,17 @@ class CommentController extends Controller
     {
         $this->commentService->deleteCenterReply($reply);
         return $this->success(null, 'تم حذف رد المركز بنجاح', 204);
+    }
+
+    public function getCommentsForUser(Center $center)
+    {
+        $comments = $this->commentService->getComments($center);
+        return $this->success($comments, 'تم جلب التعليقات بنجاح', 200);
+    }
+
+    public function getCommentsForCenter()
+    {
+        $comments = $this->commentService->getCommentsForCenter();
+        return $this->success($comments, 'تم جلب التعليقات بنجاح', 200);
     }
 }

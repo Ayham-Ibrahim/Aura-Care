@@ -376,41 +376,41 @@ class CommentService extends Service
     {
         try {
             $comment->load(['user:id,name,avatar', 'replies', 'center:id,name', 'reservation.manageSubservices.subservice']);
-            
-                return [
-                    'id' => $comment->id,
-                    'user_id' => $comment->user_id,
-                    'center_id' => $comment->center_id,
-                    'reservation_id' => $comment->reservation_id,
-                    'text' => $comment->text,
-                    'is_edited' => $comment->is_edited,
-                    'created_at' => $comment->created_at,
-                    'user' => [
-                        'id' => $comment->user->id,
-                        'name' => $comment->user->name,
-                        'avatar' => $comment->user->avatar,
-                    ],
-                    'center' => [
-                        'id' => $comment->center->id,
-                        'name' => $comment->center->name,
-                    ],
-                    'subservices' => $comment->reservation && $comment->reservation->manageSubservices
-                        ? $comment->reservation->manageSubservices->map(function ($manageSubservice) {
-                            return [
-                                'id' => $manageSubservice->subservice_id,
-                                'name' => $manageSubservice->subservice ? $manageSubservice->subservice->name : null,
-                            ];
-                        })
-                        : [],
-                    'replies' => $comment->replies->map(function ($reply) use ($comment) {
+
+            return [
+                'id' => $comment->id,
+                'user_id' => $comment->user_id,
+                'center_id' => $comment->center_id,
+                'reservation_id' => $comment->reservation_id,
+                'text' => $comment->text,
+                'is_edited' => $comment->is_edited,
+                'created_at' => $comment->created_at,
+                'user' => [
+                    'id' => $comment->user->id,
+                    'name' => $comment->user->name,
+                    'avatar' => $comment->user->avatar,
+                ],
+                'center' => [
+                    'id' => $comment->center->id,
+                    'name' => $comment->center->name,
+                ],
+                'subservices' => $comment->reservation && $comment->reservation->manageSubservices
+                    ? $comment->reservation->manageSubservices->map(function ($manageSubservice) {
                         return [
-                            'id' => $reply->id,
-                            'reply' => $reply->reply,
-                            'center_name' => $comment->center->name,
-                            'created_at' => $reply->created_at,
+                            'id' => $manageSubservice->subservice_id,
+                            'name' => $manageSubservice->subservice ? $manageSubservice->subservice->name : null,
                         ];
-                    }),
-                ];
+                    })
+                    : [],
+                'replies' => $comment->replies->map(function ($reply) use ($comment) {
+                    return [
+                        'id' => $reply->id,
+                        'reply' => $reply->reply,
+                        'center_name' => $comment->center->name,
+                        'created_at' => $reply->created_at,
+                    ];
+                }),
+            ];
         } catch (\Exception $e) {
             Log::error('Error fetching comment for admin', ['comment_id' => $comment->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب التعليق');
@@ -426,5 +426,70 @@ class CommentService extends Service
             Log::error('Error deleting comment by admin', ['comment_id' => $comment->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء حذف التعليق');
         }
+    }
+
+    public function getCommentByIdForUser(Comment $comment)
+    {
+        return [
+            'id' => $comment->id,
+            'user_has_this_comment' => $comment->user_id === Auth::id(),
+            'text' => $comment->text,
+            'is_edited' => $comment->is_edited,
+            'created_at' => $comment->created_at,
+            'user' => [
+                'id' => $comment->user->id,
+                'name' => $comment->user->name,
+                'avatar' => $comment->user->avatar,
+            ],
+            'subservices' => $comment->reservation && $comment->reservation->manageSubservices
+                ? $comment->reservation->manageSubservices->map(function ($manageSubservice) {
+                    return [
+                        'id' => $manageSubservice->subservice_id,
+                        'name' => $manageSubservice->subservice ? $manageSubservice->subservice->name : null,
+                        // 'image' => $manageSubservice->subservice ? $manageSubservice->subservice->image : null,
+                    ];
+                })
+                : [],
+            'replies' => $comment->replies->map(function ($reply,) use ($comment) {
+                return [
+                    'id' => $reply->id,
+                    'reply' => $reply->reply,
+                    'center_name' => $comment->center->name,
+                    'created_at' => $reply->created_at,
+                ];
+            }),
+        ];
+    }
+
+    public function getCommentByIdForCenter(Comment $comment)
+    {
+        return [
+            'id' => $comment->id,
+            'text' => $comment->text,
+            'is_edited' => $comment->is_edited,
+            'created_at' => $comment->created_at,
+            'user' => [
+                'id' => $comment->user->id,
+                'name' => $comment->user->name,
+                'avatar' => $comment->user->avatar,
+            ],
+            'subservices' => $comment->reservation && $comment->reservation->manageSubservices
+                ? $comment->reservation->manageSubservices->map(function ($manageSubservice) {
+                    return [
+                        'id' => $manageSubservice->subservice_id,
+                        'name' => $manageSubservice->subservice ? $manageSubservice->subservice->name : null,
+                        // 'image' => $manageSubservice->subservice ? $manageSubservice->subservice->image : null,
+                    ];
+                })
+                : [],
+            'replies' => $comment->replies->map(function ($reply,) use ($comment) {
+                return [
+                    'id' => $reply->id,
+                    'reply' => $reply->reply,
+                    'center_name' => $comment->center->name,
+                    'created_at' => $reply->created_at,
+                ];
+            }),
+        ];
     }
 }

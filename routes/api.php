@@ -171,6 +171,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::post('reservation/{reservation}/comment', [CommentController::class, 'store']);
     Route::put('comment/{comment}', [CommentController::class, 'update']);
     Route::delete('comment/{comment}', [CommentController::class, 'destroy']);
+    Route::get('comment/{comment}', [CommentController::class, 'getCommentByIdForUser']);
     Route::get('comments/{center}', [CommentController::class, 'getCommentsForUser']);
 
 
@@ -244,11 +245,12 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::put('working-hours', [WorkingHourController::class, 'update']);
     Route::post('working-hours/reset', [WorkingHourController::class, 'resetToDefault']);
 
-    // Center comment replies
+    // Center comment endpoints
     Route::post('comments/{comment}/reply', [CommentController::class, 'storeCenterReply']);
     Route::put('comments/replies/{reply}', [CommentController::class, 'updateCenterReply']);
     Route::delete('comments/replies/{reply}', [CommentController::class, 'deleteCenterReply']);
     Route::get('comments', [CommentController::class, 'getCommentsForCenter']);
+    Route::get('comments/{comment}', [CommentController::class, 'getCommentByIdForCenter']);
     Route::post('comments/{comment}/report', [CommentController::class, 'reportAComment']);
 
     // Center document uploads for verification

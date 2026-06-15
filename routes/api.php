@@ -56,7 +56,7 @@ Route::middleware('auth:sanctum')->delete('/account/delete', [UserManagementCont
 
 //################################################################
 //بدي ضيف مدلوير الadmin مع الauth
-Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+Route::prefix('admin')->middleware([IsAdmin::class,'auth:sanctum'])->group(function () {
     Route::get('sections/services', [SectionController::class, 'withServices']);
 
     /*

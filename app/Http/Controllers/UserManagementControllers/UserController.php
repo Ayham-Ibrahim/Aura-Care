@@ -27,9 +27,13 @@ class UserController extends Controller
         $user = Auth::user();
         $centers = $user->favoriteCenters()
             ->where('centers.is_active', true)
-            ->select('centers.id', 'rating', 'name', 'logo')
+            ->select('centers.id', 'rating', 'name', 'logo','verification_status')
             ->get()
             ->makeHidden('pivot');
+        $centers->map(function ($center) {
+            $center->is_verified = $center->verification_status == 'accepted';
+            unset($center->verification_status);
+        }); 
         return $this->success($centers, 'تم جلب المراكز المفضلة بنجاح');
     }
 

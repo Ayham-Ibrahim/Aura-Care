@@ -26,6 +26,8 @@ class UserService extends Service
             'works.service:id,name,image',
         ]);
 
+        $is_verified = $center->verification_status == 'accepted';
+
         $basic = $center->only([
             'id',
             'rating',
@@ -34,6 +36,8 @@ class UserService extends Service
             'location_v',
             'location_h',
         ]);
+
+        $basic['is_verified'] = $is_verified;
         if (Auth::check()) {
             $basic['is_favorited'] =  Auth::guard('api')->user()->favoriteCenters()->where('center_id', $center->id)->exists() ?? false;
             $basic['distance'] = $this->calculateDistance(Auth::guard('api')->user(), $center);

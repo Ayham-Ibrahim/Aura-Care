@@ -41,7 +41,7 @@ class DashboardService extends Service
         try {
             // return Offer::all();
             return Offer::with([
-                'center:id,name,logo,rating,location_v,location_h',
+                'center:id,name,logo,rating,location_v,location_h,verification_status',
                 'manageSubservices:id,price',
             ])
                 ->select('id', 'center_id', 'image', 'description', 'discount_value', 'from', 'to', 'discount_percentage')
@@ -58,6 +58,7 @@ class DashboardService extends Service
                 ->get()
                 ->map(function (Offer $offer) {
                     $center = $offer->center ? $offer->center : null;
+                    $center->is_verified = $center->verification_status == 'accepted';
                     $price = $offer->manageSubservices->sum('price') - $offer->discount_value;
                     $distance = null;
 
@@ -76,7 +77,7 @@ class DashboardService extends Service
                         'from' => $offer->from,
                         'to' => $offer->to,
                         'distance' => $distance,
-                        'center' => $center->only(['id', 'name', 'logo', 'rating']),
+                        'center' => $center->only(['id', 'name', 'logo', 'rating','is_verified']),
                     ];
                 });
         } catch (\Exception $e) {
@@ -140,6 +141,7 @@ class DashboardService extends Service
                 'logo' => $center->logo,
                 'rating' => $center->rating,
                 'distance' => $distance,
+                'is_verified' => $center->verification_status == 'accepted',
             ];
         });
     }
@@ -170,6 +172,7 @@ class DashboardService extends Service
 
         return $subservice->map(function (ManageSubservice $manageSubservice) {
             $center = $manageSubservice->center ? $manageSubservice->center : null;
+            $center->is_verified = $center->verification_status == 'accepted';
             $subservice = $manageSubservice->subservice ? $manageSubservice->subservice->only(['id', 'name', 'image']) : null;
             $distance = 0;
             if (Auth::check() && $center) {
@@ -186,7 +189,7 @@ class DashboardService extends Service
                 'from' => $manageSubservice->from,
                 'to' => $manageSubservice->to,
                 'distance' => $distance,
-                'center' => $center->only(['id', 'name', 'logo', 'rating']),
+                'center' => $center->only(['id', 'name', 'logo', 'rating','is_verified']),
             ];
         });
     }

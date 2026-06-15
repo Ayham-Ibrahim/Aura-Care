@@ -327,12 +327,15 @@ class ReservationService extends Service
                 'center:id,name,logo,phone',
                 'manageSubservices:id,price,subservice_id',
                 'manageSubservices.subservice:id,name,image',
+                'comments'
             ]);
             if (in_array($reservation->status, ['incompleted', 'cancelled', 'completed'])) {
                 $remaining_amount = 0;
             } else {
                 $remaining_amount = $reservation->remaining_amount;
             }
+
+            $has_comment = $reservation->comments()->exists();
 
             return [
                 'id' => $reservation->id,
@@ -342,6 +345,7 @@ class ReservationService extends Service
                 'deposit_amount' => $reservation->deposit_amount,
                 'remaining_amount' =>  $remaining_amount,
                 'reason_for_cancellation' => $reservation->reason_for_cancellation,
+                'has_comment' => $has_comment,
                 'subservice' => $reservation->manageSubservices->map(function ($sub) {
                     return [
                         'id' => $sub->id,

@@ -416,7 +416,7 @@ class CenterService extends Service
     public function listCentersBasic()
     {
         $centers = Center::active()
-            ->select('id', 'name', 'logo', 'rating', 'location_h', 'location_v')
+            ->select('id', 'name', 'logo', 'rating', 'location_h', 'location_v','verification_status')
             ->get()
             ->map(function ($center) {
                 if (Auth::check() && $center) {
@@ -430,6 +430,7 @@ class CenterService extends Service
                     'logo' => $center->logo,
                     'rating' => $center->rating,
                     'distance' => $distance,
+                    'is_verified' => $center->verification_status == 'accepted'
                 ];
             });
 
@@ -572,11 +573,18 @@ class CenterService extends Service
         try {
 
             return Center::active()
-                ->select('id', 'name', 'logo')
+                ->select('id', 'name', 'logo','verification_status')
                 ->whereHas('services', function ($q) use ($service) {
                     $q->where('service_id', $service->id);
                 })
-                ->get();
+                ->get()->map(function ($center) {
+                return [
+                    'id' => $center->id,
+                    'name' => $center->name,
+                    'logo' => $center->logo,
+                    'is_verified' => $center->verification_status == 'accepted',
+                ];
+            });
         } catch (\Exception $e) {
             Log::error('Error fetching centers by service', ['service' => $service, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالخدمة');
@@ -587,10 +595,19 @@ class CenterService extends Service
     {
         try {
 
-            return Center::active()
-                ->select('id', 'name', 'logo')
+            $centers = Center::active()
+                ->select('id', 'name', 'logo','verification_status')
                 ->where('section_id', $section->id)
-                ->get();
+                ->get()->map(function ($center) {
+                return [
+                    'id' => $center->id,
+                    'name' => $center->name,
+                    'logo' => $center->logo,
+                    'is_verified' => $center->verification_status == 'accepted',
+                ];
+            });
+
+            return $centers;
         } catch (\Exception $e) {
             Log::error('Error fetching centers by section', ['section' => $section, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالقسم');
@@ -608,7 +625,7 @@ class CenterService extends Service
                 ->where('subservice_id', $subservice->id)
                 ->where('is_active', 1)
                 ->with([
-                    'center:id,name,logo,rating,location_h,location_v',
+                    'center:id,name,logo,rating,location_h,location_v,verification_status',
                     'offers' => function ($query) {
                         $query->with('manageSubservices')->select('offers.id as id', 'from', 'to')
                             ->where('from', '<=', Carbon::now())
@@ -637,6 +654,7 @@ class CenterService extends Service
                 }
 
                 $center = $manageSubservice->center;
+                $center->is_verified = $center->verification_status == 'accepted';
                 $distance = (float) 0;
                 if ($user && $center) {
                     $distance = $this->calculateDistance($user, $center);
@@ -650,7 +668,7 @@ class CenterService extends Service
                     'distance_km' => $distance,
                     'has_offer' => $has_offer,
                     'offer_id' => $has_offer ? $offer->id : null,
-                    'center' => $center->only(['id', 'name', 'logo', 'rating']),
+                    'center' => $center->only(['id', 'name', 'logo', 'rating','is_verified']),
                 ];
             });
         } catch (\Exception $e) {

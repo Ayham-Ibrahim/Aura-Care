@@ -327,7 +327,8 @@ class ReservationService extends Service
                 'center:id,name,logo,phone',
                 'manageSubservices:id,price,subservice_id',
                 'manageSubservices.subservice:id,name,image',
-                'comments'
+                'comments.replies',
+                'comments.user:id,name,avatar'
             ]);
             if (in_array($reservation->status, ['incompleted', 'cancelled', 'completed'])) {
                 $remaining_amount = 0;
@@ -335,7 +336,8 @@ class ReservationService extends Service
                 $remaining_amount = $reservation->remaining_amount;
             }
 
-            $has_comment = $reservation->comments()->exists();
+            $has_comment = $reservation->comments->isNotEmpty();
+            $comment = $reservation->comments->first();
 
             return [
                 'id' => $reservation->id,
@@ -346,6 +348,7 @@ class ReservationService extends Service
                 'remaining_amount' =>  $remaining_amount,
                 'reason_for_cancellation' => $reservation->reason_for_cancellation,
                 'has_comment' => $has_comment,
+                'comment' => $has_comment ? $comment : null,
                 'subservice' => $reservation->manageSubservices->map(function ($sub) {
                     return [
                         'id' => $sub->id,

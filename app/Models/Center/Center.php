@@ -29,6 +29,8 @@ class Center extends Model
         'section_id',
         'name',
         'logo',
+        'cover_image',
+        'about_center',
         'location_h',
         'location_v',
         'phone',

@@ -35,6 +35,8 @@ class UserService extends Service
             'logo',
             'location_v',
             'location_h',
+            'cover_image',
+            'about_center',
         ]);
 
         $basic['is_verified'] = $is_verified;

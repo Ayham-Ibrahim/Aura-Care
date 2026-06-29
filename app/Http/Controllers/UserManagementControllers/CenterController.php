@@ -11,6 +11,7 @@ use App\Http\Requests\Center\UpdateCenterPaymentInfoRequest;
 use App\Http\Requests\Center\StoreCenterDocumentsRequest;
 use App\Http\Requests\Center\UpdateCenterLocation;
 use App\Http\Requests\Center\UpdateCenterLogoRequest;
+use App\Http\Requests\Center\UpdateCenterBrandingRequest;
 use App\Models\Center\Center;
 use App\Models\Center\Work;
 use App\Models\Section;
@@ -64,7 +65,8 @@ class CenterController extends Controller
         return $this->success($works, 'تم الحصول على أعمال المركز بنجاح');
     }
 
-    public function deleteWork(Work $work) {
+    public function deleteWork(Work $work)
+    {
         $work->delete();
         return $this->success(null, 'تم حذف العمل بنجاح', 204);
     }
@@ -153,6 +155,15 @@ class CenterController extends Controller
     {
         $center = $this->centerService->updateCenterLogo($request->validated());
         return $this->success($center->only(['logo']), 'تم تحديث شعار المركز بنجاح');
+    }
+
+    /**
+     * Update center branding including cover image, logo and about text.
+     */
+    public function updateCenterBranding(UpdateCenterBrandingRequest $request)
+    {
+        $center = $this->centerService->updateCenterBranding($request->validated());
+        return $this->success($center, 'تم تحديث بيانات الغلاف والشعار والنبذة بنجاح');
     }
 
     /**

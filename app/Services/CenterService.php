@@ -384,13 +384,38 @@ class CenterService extends Service
             'phone',
             'name',
             'logo',
+            'cover_image',
+            'about_center',
         ]);
     }
 
     /**
-     * Summary of updateCenterLogo
+     * Update center logo, cover image, and about text.
+     *
+     * @param array $data
+     * @return array
+     */
+    public function updateCenterBranding(array $data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $center->update([
+                'logo' => FileStorage::fileExists($data['logo'] ?? null, $center->logo, 'Center', 'img') ?? $center->logo,
+                'cover_image' => FileStorage::fileExists($data['cover_image'] ?? null, $center->cover_image, 'Center', 'img') ?? $center->cover_image,
+                'about_center' => $data['about_center'] ?? $center->about_center,
+            ]);
+            return $center->only(['logo', 'cover_image', 'about_center']);
+        } catch (\Exception $e) {
+            Log::error('Error updating center branding', ['center_id' => Auth::guard('center')->id(), 'data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل بيانات المركز');
+        }
+    }
+
+    /**
+     * Update just the center logo.
+     *
      * @param mixed $data
-     * @return \App\Models\User
+     * @return \App\Models\Center\Center
      */
     public function updateCenterLogo($data)
     {

@@ -259,6 +259,7 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     // Center profile and location
     Route::get('profile-info', [CenterController::class, 'centerProfileInfo']);
     Route::post('logo', [CenterController::class, 'updateCenterLogo']);
+    Route::patch('branding', [CenterController::class, 'updateCenterBranding']);
     Route::get('location', [CenterController::class, 'getCenterLocation']);
     Route::patch('location', [CenterController::class, 'updateCenterLocation']);
 

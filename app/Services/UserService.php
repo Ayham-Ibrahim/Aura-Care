@@ -35,6 +35,8 @@ class UserService extends Service
             'logo',
             'location_v',
             'location_h',
+            'cover_image',
+            'about_center',
         ]);
 
         $basic['is_verified'] = $is_verified;
@@ -57,6 +59,25 @@ class UserService extends Service
 
             ];
         });
+
+        $service_ids = $center->services->pluck('id')->toArray();
+
+         $basic['subservices'] = Subservice::withWhereHas('manageSubservices', function ($q) use ($center) {
+                    $q->where('center_id', $center->id)
+                        ->where('is_active', true);
+                })
+                ->whereIn('service_id', $service_ids)
+                ->get()
+                ->map(function ($sub) {
+                    $manage = $sub->manageSubservices->first(); // خذ أول عنصر فقط
+                    return [
+                        'id' => $manage ? $manage->id : null,
+                        'service_id' => $sub->service_id,
+                        'name' => $sub->name,
+                        'image' => $manage->image ? $manage->image : $sub->image,
+                        'price' => $manage->price
+                    ];
+                });
 
 
         return $basic;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Subservice\multipleDeleteSubserviceRequest;
 use App\Http\Requests\Subservice\StoreSubserviceRequest;
 use App\Http\Requests\Subservice\UpdateSubserviceRequest;
+use App\Models\ManageSubservice;
 use App\Models\Subservice;
 use App\Services\SubserviceService;
 use Illuminate\Http\Request;
@@ -66,5 +67,11 @@ class SubserviceController extends Controller
     {
         $subservices = $this->subserviceService->getSubservicesByServiceForUser($serviceId);
         return $this->success($subservices, 'تم جلب الخدمات الفرعية بنجاح');
+    }
+
+    public function getsubservicesByIdForUser(ManageSubservice $subservice)
+    {
+        $subservice = $this->subserviceService->getSubservicesByIdForUser($subservice);
+        return $this->success($subservice, 'تم جلب الخدمة الفرعية بنجاح');
     }
 }

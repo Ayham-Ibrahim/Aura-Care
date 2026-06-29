@@ -10,6 +10,7 @@ use App\Services\Center\WorkingHourService;
 // use App\Models\ManageSubservice;
 use App\Models\Subservice;
 use App\Models\ManageSubservice;
+use App\Models\ManageSubserviceImage;
 use App\Models\Section;
 use App\Models\Service as ServiceModel;
 use App\Models\Offer;
@@ -150,10 +151,9 @@ class CenterService extends Service
     {
         try {
             $center->update(['is_active' => !$center->is_active]);
-            
+
             if (!$center->is_active && method_exists($center, 'tokens')) {
                 $center->tokens()->delete();
-            
             }
             return $center;
         } catch (\Exception $e) {
@@ -384,13 +384,38 @@ class CenterService extends Service
             'phone',
             'name',
             'logo',
+            'cover_image',
+            'about_center',
         ]);
     }
 
     /**
-     * Summary of updateCenterLogo
+     * Update center logo, cover image, and about text.
+     *
+     * @param array $data
+     * @return array
+     */
+    public function updateCenterBranding(array $data)
+    {
+        try {
+            $center = Auth::guard('center')->user();
+            $center->update([
+                'logo' => FileStorage::fileExists($data['logo'] ?? null, $center->logo, 'Center', 'img') ?? $center->logo,
+                'cover_image' => FileStorage::fileExists($data['cover_image'] ?? null, $center->cover_image, 'Center', 'img') ?? $center->cover_image,
+                'about_center' => $data['about_center'] ?? $center->about_center,
+            ]);
+            return $center->only(['logo', 'cover_image', 'about_center']);
+        } catch (\Exception $e) {
+            Log::error('Error updating center branding', ['center_id' => Auth::guard('center')->id(), 'data' => $data, 'error' => $e->getMessage()]);
+            $this->throwExceptionJson('حدث خطأ ما أثناء تعديل بيانات المركز');
+        }
+    }
+
+    /**
+     * Update just the center logo.
+     *
      * @param mixed $data
-     * @return \App\Models\User
+     * @return \App\Models\Center\Center
      */
     public function updateCenterLogo($data)
     {
@@ -416,7 +441,7 @@ class CenterService extends Service
     public function listCentersBasic()
     {
         $centers = Center::active()
-            ->select('id', 'name', 'logo', 'rating', 'location_h', 'location_v','verification_status')
+            ->select('id', 'name', 'logo', 'rating', 'location_h', 'location_v', 'verification_status')
             ->get()
             ->map(function ($center) {
                 if (Auth::check() && $center) {
@@ -464,7 +489,7 @@ class CenterService extends Service
         try {
             $center = Auth::guard('center')->user();
             $subservices = Subservice::with(['manageSubservices' => function ($query) use ($center) {
-                $query->where('center_id', $center->id)->select('id', 'is_active', 'center_id', 'subservice_id');
+                $query->where('center_id', $center->id)->select('id', 'is_active', 'center_id', 'subservice_id', 'image');
             }])->where('service_id', $service_id)->get();
             // $subservices = Subservice::where('service_id', $service_id)->get();
 
@@ -472,6 +497,9 @@ class CenterService extends Service
                 $subservice->is_active = $subservice->manageSubservices->isNotEmpty()
                     ? $subservice->manageSubservices->first()->is_active
                     : 0;
+                $subservice->image = $subservice->manageSubservices->first()->image
+                    ? $subservice->manageSubservices->first()->image
+                    : $subservice->image;
                 unset($subservice->manageSubservices);
             });
             return $subservices;
@@ -499,6 +527,7 @@ class CenterService extends Service
         }
 
         try {
+            DB::beginTransaction();
             $manage_subservice->update([
                 'price' => $data['price'] ?? $manage_subservice->price,
                 'is_active' => $data['is_active'] ?? $manage_subservice->is_active,
@@ -506,9 +535,21 @@ class CenterService extends Service
                 'points' => $data['points'] ?? $manage_subservice->points,
                 'from' => $data['from'] ?? $manage_subservice->from,
                 'to' => $data['to'] ?? $manage_subservice->to,
+                'image' => FileStorage::fileExists($data['image'] ?? null, $manage_subservice->image, 'ManageSubservice', 'img') ?? $manage_subservice->image,
+                'description' => $data['description'] ?? $manage_subservice->description,
+                'completion_time' => $data['completion_time'] ?? $manage_subservice->completion_time,
+                'equipment' => $data['equipment'] ?? $manage_subservice->equipment,
             ]);
+            foreach ($data['images'] ?? [] as $image) {
+                ManageSubserviceImage::create([
+                    'manage_subservice_id' => $manage_subservice->id,
+                    'image' => FileStorage::storeFile($image, 'ManageSubserviceImages', 'img'),
+                ]);
+            }
+            DB::commit();
             return $manage_subservice->load('subservice:id,name,image');
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Error editing subservices for center', ['center_id' => $center->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطاء ما اثناء تعديل الخدمات الخاصة بالمركز');
         }
@@ -518,11 +559,12 @@ class CenterService extends Service
     {
         try {
             $center = Auth::guard('center')->user();
-            $manage_subservice = ManageSubservice::with('subservice:id,name,image')->where('center_id', $center->id)
+            $manage_subservice = ManageSubservice::with(['subservice:id,name,image', 'images'])->where('center_id', $center->id)
                 ->where('subservice_id', $subservice->id)
                 ->first();
 
             if (!$manage_subservice) {
+                // return 1;
                 $serivce_id = $subservice->service_id;
                 $services = $center->services()->pluck('services.id')->toArray();
                 if (!in_array($serivce_id, $services)) {
@@ -537,6 +579,8 @@ class CenterService extends Service
                     ->first();
             }
             $manage_subservice->id = $subservice->id;
+            $manage_subservice->subservice->image = $manage_subservice->image ? $manage_subservice->image
+                : $subservice->image;
 
 
             return $manage_subservice;
@@ -573,18 +617,48 @@ class CenterService extends Service
         try {
 
             return Center::active()
-                ->select('id', 'name', 'logo','verification_status')
+                //بدي جيب الخدمات التابعة لهي الخدمة الرايسية
+                ->withwherehas('manageSubservices', function ($query) use ($service) {
+                    $query->whereHas('subservice', function ($q) use ($service) {
+                        $q->where('service_id', $service->id);
+                    })->where('is_active', 1);
+                })
+                ->with('ratings')
+                // ->select('id', 'name', 'logo', 'cover_image', 'verification_status', 'rating', 'location_h', 'location_v')
                 ->whereHas('services', function ($q) use ($service) {
                     $q->where('service_id', $service->id);
                 })
                 ->get()->map(function ($center) {
-                return [
-                    'id' => $center->id,
-                    'name' => $center->name,
-                    'logo' => $center->logo,
-                    'is_verified' => $center->verification_status == 'accepted',
-                ];
-            });
+                    $distance = 0;
+                    if (Auth::check() && $center) {
+                        $distance = $this->calculateDistance(Auth::user(), $center);
+                    } else {
+                        $distance = (float) 0;
+                    }
+                    $rating_count = $center->ratings->count();
+                    return [
+                        'id' => $center->id,
+                        'name' => $center->name,
+                        'logo' => $center->logo,
+                        'cover_image' => $center->cover_image,
+                        'about_center' => $center->about_center,
+                        'rating' => $center->rating,
+                        'rating_count' => $rating_count,
+                        'location_h' => $center->location_h,
+                        'location_v' => $center->location_v,
+                        'distance' => $distance,
+                        'is_verified' => $center->verification_status == 'accepted',
+                        'subservices' => $center->manageSubservices->map(function ($manageSubservice) {
+                            return [
+                                'id' => $manageSubservice->subservice_id,
+                                'name' => $manageSubservice->subservice->name,
+                                'image' => $manageSubservice->image ? $manageSubservice->image : $manageSubservice->subservice->image,
+                                'price' => $manageSubservice->price,
+                                'description' => $manageSubservice->description
+                            ];
+                        }),
+                    ];
+                });
         } catch (\Exception $e) {
             Log::error('Error fetching centers by service', ['service' => $service, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب المراكز الخاصة بالخدمة');
@@ -596,16 +670,16 @@ class CenterService extends Service
         try {
 
             $centers = Center::active()
-                ->select('id', 'name', 'logo','verification_status')
+                ->select('id', 'name', 'logo', 'verification_status')
                 ->where('section_id', $section->id)
                 ->get()->map(function ($center) {
-                return [
-                    'id' => $center->id,
-                    'name' => $center->name,
-                    'logo' => $center->logo,
-                    'is_verified' => $center->verification_status == 'accepted',
-                ];
-            });
+                    return [
+                        'id' => $center->id,
+                        'name' => $center->name,
+                        'logo' => $center->logo,
+                        'is_verified' => $center->verification_status == 'accepted',
+                    ];
+                });
 
             return $centers;
         } catch (\Exception $e) {
@@ -668,7 +742,7 @@ class CenterService extends Service
                     'distance_km' => $distance,
                     'has_offer' => $has_offer,
                     'offer_id' => $has_offer ? $offer->id : null,
-                    'center' => $center->only(['id', 'name', 'logo', 'rating','is_verified']),
+                    'center' => $center->only(['id', 'name', 'logo', 'rating', 'is_verified']),
                 ];
             });
         } catch (\Exception $e) {

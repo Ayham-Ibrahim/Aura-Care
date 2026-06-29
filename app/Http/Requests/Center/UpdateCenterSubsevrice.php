@@ -29,6 +29,16 @@ class UpdateCenterSubsevrice extends FormRequest
             'points' => 'sometimes|integer|min:0',
             'from' => 'sometimes|date',
             'to' => 'sometimes|date|after_or_equal:from',
+            'image' => 'nullable||image
+                        |mimes:png,jpg,jpeg
+                        |mimetypes:image/jpeg,image/png,image/jpg
+                        |max:5000',
+            'description' => 'required|string|max:2000',
+            'completion_time' => 'nullable|string|max:255',
+            'equipment' => 'nullable|string|max:255',
+            //بدي دخل array من الصور
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:png,jpg,jpeg|mimetypes:image/jpeg,image/png,image/jpg|max:5000',
         ];
     }
 
@@ -53,5 +63,33 @@ class UpdateCenterSubsevrice extends FormRequest
                 }
             }
         });
+    }
+
+    public function messages(): array
+    {
+        return [
+            'subservice_id.required' => 'معرف الخدمة الفرعية مطلوب.',
+            'subservice_id.exists' => 'الخدمة الفرعية المحددة غير موجودة.',
+            'price.numeric' => 'السعر يجب أن يكون رقمًا.',
+            'price.min' => 'السعر لا يمكن أن يكون أقل من 0.',
+            'is_active.boolean' => 'حالة التفعيل يجب أن تكون صحيحة أو خاطئة.',
+            'activating_points.boolean' => 'تفعيل النقاط يجب أن يكون صحيحًا أو خاطئًا.',
+            'points.integer' => 'عدد النقاط يجب أن يكون رقمًا صحيحًا.',
+            'points.min' => 'عدد النقاط لا يمكن أن يكون أقل من 0.',
+            'from.date' => 'تاريخ البدء يجب أن يكون تاريخًا صالحًا.',
+            'to.date' => 'تاريخ الانتهاء يجب أن يكون تاريخًا صالحًا.',
+            'to.after_or_equal' => 'تاريخ الانتهاء يجب أن يكون بعد أو يساوي تاريخ البدء.',
+            'image.image' => 'الملف المرفق يجب أن يكون صورة.',
+            'image.mimes' => 'الملف المرفق يجب أن يكون من نوع png, jpg, jpeg.',
+            'image.mimetypes' => 'الملف المرفق يجب أن يكون من نوع png, jpg, jpeg.',
+            'image.max' => 'حجم الملف لا يجب أن يتجاوز 5 ميجابايت.',
+            'description.required' => 'الوصف مطلوب.',
+            'description.string' => 'الوصف يجب أن يكون نصًا.',
+            'description.max' => 'الوصف لا يجب أن يتجاوز 2000 حرفًا.',
+            'completion_time.string' => 'وقت الإنجاز يجب أن يكون نصًا.',
+            'completion_time.max' => 'وقت الإنجاز لا يجب أن يتجاوز 255 حرفًا.',
+            'equipment.string' => 'المعدات يجب أن تكون نصًا.',
+            'equipment.max' => 'المعدات لا يجب أن تتجاوز 255 حرفًا.',
+        ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ManageSubservice;
 use App\Models\Subservice;
 use App\Models\Service;
 use Illuminate\Support\Facades\Log;
@@ -95,5 +96,31 @@ class SubserviceService extends Service
         return Subservice::where('service_id', $serviceId)
             ->select('id', 'name', 'image')
             ->get();
+    }
+
+    public function getSubservicesByIdForUser(ManageSubservice $manageSubservice)
+    {
+        $manageSubservice->load(['subservice:id,name,image', 'images']);
+
+        return [
+            'id' => $manageSubservice->id,
+            'name' => $manageSubservice->subservice->name,
+            'price' => $manageSubservice->price,
+            'is_active' => $manageSubservice->is_active,
+            'activating_points' => $manageSubservice->activating_points,
+            'points' => $manageSubservice->points,
+            'from' => $manageSubservice->from,
+            'to' => $manageSubservice->to,
+            'image' => $manageSubservice->image ?? $manageSubservice->subservice->image,
+            'description' => $manageSubservice->description,
+            'completion_time' => $manageSubservice->completion_time,
+            'equipment' => $manageSubservice->equipment,
+            'images' => $manageSubservice->images->map(function ($image) {
+                return [
+                    'id' => $image->id,
+                    'image' => $image->image,
+                ];
+            }),
+        ];
     }
 }

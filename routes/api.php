@@ -198,6 +198,7 @@ Route::prefix('user')->group(function () {
 
     Route::get('centers/service/{service}', [CenterController::class, 'getCentersByService']);
     Route::get('centers/section/{section}', [CenterController::class, 'getCentersBySection']);
+    Route::get('centers/subservices/id/{subservice}', [SubserviceController::class, 'getsubservicesByIdForUser']);
 
     Route::get('subservice/service/{service}', [SubserviceController::class, 'getSubservicesByServiceForUser']);
     Route::get('center/subservice/{subservice}', [CenterController::class, 'getCentersBySubservice']);

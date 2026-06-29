@@ -15,6 +15,8 @@ return new class extends Migration
             // إضافة عمود الصورة
             $table->string('image')->nullable();
             $table->string('description')->nullable();
+            $table->string('completion_time')->nullable();
+            $table->string('equipment')->nullable();
             
         });
     }
@@ -25,7 +27,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('manage_subservices', function (Blueprint $table) {
-            $table->dropColumn(['image', 'description']);
+            $table->dropColumn(['image', 'description', 'completion_time', 'equipment']);
         });
     }
 };

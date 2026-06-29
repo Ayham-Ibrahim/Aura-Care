@@ -10,6 +10,7 @@ use App\Services\Center\WorkingHourService;
 // use App\Models\ManageSubservice;
 use App\Models\Subservice;
 use App\Models\ManageSubservice;
+use App\Models\ManageSubserviceImage;
 use App\Models\Section;
 use App\Models\Service as ServiceModel;
 use App\Models\Offer;
@@ -527,6 +528,7 @@ class CenterService extends Service
         }
 
         try {
+            DB::beginTransaction();
             $manage_subservice->update([
                 'price' => $data['price'] ?? $manage_subservice->price,
                 'is_active' => $data['is_active'] ?? $manage_subservice->is_active,
@@ -536,9 +538,19 @@ class CenterService extends Service
                 'to' => $data['to'] ?? $manage_subservice->to,
                 'image' => FileStorage::fileExists($data['image'] ?? null, $manage_subservice->image, 'ManageSubservice', 'img') ?? $manage_subservice->image,
                 'description' => $data['description'] ?? $manage_subservice->description,
+                'completion_time' => $data['completion_time'] ?? $manage_subservice->completion_time,
+                'equipment' => $data['equipment'] ?? $manage_subservice->equipment,
             ]);
+            foreach( $data['images'] ?? [] as $image) {
+                ManageSubserviceImage::create([
+                    'manage_subservice_id' => $manage_subservice->id,
+                    'image' => FileStorage::storeFile($image, 'ManageSubserviceImages', 'img'),
+                ]);
+            }
+            DB::commit();
             return $manage_subservice->load('subservice:id,name,image');
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Error editing subservices for center', ['center_id' => $center->id, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطاء ما اثناء تعديل الخدمات الخاصة بالمركز');
         }
@@ -548,7 +560,7 @@ class CenterService extends Service
     {
         try {
             $center = Auth::guard('center')->user();
-            $manage_subservice = ManageSubservice::with('subservice:id,name,image')->where('center_id', $center->id)
+            $manage_subservice = ManageSubservice::with(['subservice:id,name,image','images'])->where('center_id', $center->id)
                 ->where('subservice_id', $subservice->id)
                 ->first();
 

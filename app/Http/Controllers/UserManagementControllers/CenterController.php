@@ -14,6 +14,7 @@ use App\Http\Requests\Center\UpdateCenterLogoRequest;
 use App\Http\Requests\Center\UpdateCenterBrandingRequest;
 use App\Models\Center\Center;
 use App\Models\Center\Work;
+use App\Models\ManageSubserviceImage;
 use App\Models\Section;
 use App\Models\Service;
 use App\Models\Subservice;
@@ -101,6 +102,12 @@ class CenterController extends Controller
             return $this->notFoundResponse('لا يقدم المركز هذة الخدمة');
         }
         return $this->success($subservices, 'تم الحصول على الخدمات الفرعية بنجاح');
+    }
+
+    public function deleteSubserviceImage(ManageSubserviceImage $image)
+    {
+        $image->delete();
+        return $this->success(null, 'تم حذف صورة الخدمة الفرعية بنجاح', 200);
     }
 
     /**

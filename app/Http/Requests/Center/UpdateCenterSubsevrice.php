@@ -34,6 +34,11 @@ class UpdateCenterSubsevrice extends FormRequest
                         |mimetypes:image/jpeg,image/png,image/jpg
                         |max:5000',
             'description' => 'required|string|max:2000',
+            'completion_time' => 'nullable|string|max:255',
+            'equipment' => 'nullable|string|max:255',
+            //بدي دخل array من الصور
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:png,jpg,jpeg|mimetypes:image/jpeg,image/png,image/jpg|max:5000',
         ];
     }
 
@@ -81,6 +86,10 @@ class UpdateCenterSubsevrice extends FormRequest
             'description.required' => 'الوصف مطلوب.',
             'description.string' => 'الوصف يجب أن يكون نصًا.',
             'description.max' => 'الوصف لا يجب أن يتجاوز 2000 حرفًا.',
+            'completion_time.string' => 'وقت الإنجاز يجب أن يكون نصًا.',
+            'completion_time.max' => 'وقت الإنجاز لا يجب أن يتجاوز 255 حرفًا.',
+            'equipment.string' => 'المعدات يجب أن تكون نصًا.',
+            'equipment.max' => 'المعدات لا يجب أن تتجاوز 255 حرفًا.',
         ];
     }
 }

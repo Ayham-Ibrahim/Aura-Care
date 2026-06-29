@@ -202,6 +202,8 @@ Route::prefix('user')->group(function () {
     Route::get('subservice/service/{service}', [SubserviceController::class, 'getSubservicesByServiceForUser']);
     Route::get('center/subservice/{subservice}', [CenterController::class, 'getCentersBySubservice']);
 
+    
+
 
     // Dashboard home page with cached data
     Route::get('home', [DashboardController::class, 'index']);
@@ -217,6 +219,7 @@ Route::prefix('center')->middleware(['auth:sanctum'])->group(function () {
     Route::get('subservices/{service_id}', [CenterController::class, 'showSubservicesByService']);
     Route::patch('subservices', [CenterController::class, 'updateSubservice']);
     Route::get('subservices/id/{subservice}', [CenterController::class, 'getSubservicesById']);
+    Route::delete('subservices/images/{image}', [CenterController::class, 'deleteSubserviceImage']);
 
     // Center Works
     Route::get('works/service/{service}', [WorkController::class, 'getWorkByService']);

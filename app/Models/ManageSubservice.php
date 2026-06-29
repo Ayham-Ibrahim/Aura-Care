@@ -18,6 +18,8 @@ class ManageSubservice extends Model
        'points',
        'from',
        'to',
+       'image',
+       'description',
     ];
 
     public function center(){

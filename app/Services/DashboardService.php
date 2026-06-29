@@ -42,7 +42,8 @@ class DashboardService extends Service
             // return Offer::all();
             return Offer::with([
                 'center:id,name,logo,rating,location_v,location_h,verification_status',
-                'manageSubservices:id,price',
+                'manageSubservices:id,price,image,subservice_id',
+                'manageSubservices.subservice:id,name,image'
             ])
                 ->select('id', 'center_id', 'image', 'description', 'discount_value', 'from', 'to', 'discount_percentage')
                 ->where('from', '<=', Carbon::now())
@@ -77,6 +78,14 @@ class DashboardService extends Service
                         'from' => $offer->from,
                         'to' => $offer->to,
                         'distance' => $distance,
+                        'manage_subservices' => $offer->manageSubservices->map(function ($manageSubservice) {
+                            return [
+                                'id' => $manageSubservice->id,
+                                'name' => $manageSubservice->subservice->name ?? null,
+                                'image' => $manageSubservice->image ? $manageSubservice->image : $manageSubservice->subservice->image,
+                                'price' => $manageSubservice->price,
+                            ];
+                        }),
                         'center' => $center->only(['id', 'name', 'logo', 'rating','is_verified']),
                     ];
                 });
@@ -152,7 +161,7 @@ class DashboardService extends Service
             'center',
             'subservice:id,name,image',
         ])
-            ->select('id', 'center_id', 'subservice_id', 'points', 'from', 'to')
+            ->select('id', 'center_id', 'subservice_id', 'points', 'from', 'to','image')
             ->when($search, function ($query) use ($search) {
                 $query
                     ->WhereHas('subservice', function ($query) use ($search) {
@@ -184,7 +193,7 @@ class DashboardService extends Service
             return [
                 'id' => $manageSubservice->id,
                 'name' => $subservice['name'],
-                'image' => $subservice['image'],
+                'image' => $manageSubservice->image ? $manageSubservice->image : $subservice['image'],
                 'points' => $manageSubservice->points,
                 'from' => $manageSubservice->from,
                 'to' => $manageSubservice->to,

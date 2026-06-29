@@ -489,7 +489,7 @@ class CenterService extends Service
         try {
             $center = Auth::guard('center')->user();
             $subservices = Subservice::with(['manageSubservices' => function ($query) use ($center) {
-                $query->where('center_id', $center->id)->select('id', 'is_active', 'center_id', 'subservice_id');
+                $query->where('center_id', $center->id)->select('id', 'is_active', 'center_id', 'subservice_id','image');
             }])->where('service_id', $service_id)->get();
             // $subservices = Subservice::where('service_id', $service_id)->get();
 
@@ -497,6 +497,9 @@ class CenterService extends Service
                 $subservice->is_active = $subservice->manageSubservices->isNotEmpty()
                     ? $subservice->manageSubservices->first()->is_active
                     : 0;
+                $subservice->image = $subservice->manageSubservices->first()->image
+                    ? $subservice->manageSubservices->first()->image
+                    : $subservice->image;
                 unset($subservice->manageSubservices);
             });
             return $subservices;
@@ -531,6 +534,8 @@ class CenterService extends Service
                 'points' => $data['points'] ?? $manage_subservice->points,
                 'from' => $data['from'] ?? $manage_subservice->from,
                 'to' => $data['to'] ?? $manage_subservice->to,
+                'image' => FileStorage::fileExists($data['image'] ?? null, $manage_subservice->image, 'ManageSubservice', 'img') ?? $manage_subservice->image,
+                'description' => $data['description'] ?? $manage_subservice->description,
             ]);
             return $manage_subservice->load('subservice:id,name,image');
         } catch (\Exception $e) {
@@ -548,6 +553,7 @@ class CenterService extends Service
                 ->first();
 
             if (!$manage_subservice) {
+                // return 1;
                 $serivce_id = $subservice->service_id;
                 $services = $center->services()->pluck('services.id')->toArray();
                 if (!in_array($serivce_id, $services)) {
@@ -562,6 +568,8 @@ class CenterService extends Service
                     ->first();
             }
             $manage_subservice->id = $subservice->id;
+            $manage_subservice->subservice->image = $manage_subservice->image ? $manage_subservice->image
+                    : $subservice->image;
 
 
             return $manage_subservice;

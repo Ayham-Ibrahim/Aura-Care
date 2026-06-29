@@ -9,6 +9,7 @@ use App\Models\Subservice;
 use App\Models\Center\WorkingHour;
 use App\Models\Device;
 use App\Models\Offer;
+use App\Models\Reviews;
 use App\Models\Wallet;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -207,7 +208,10 @@ class Center extends Model
         return Device::registerSingleDevice($this, $fcmToken);
     }
 
-
+    public function ratings()
+    {
+        return $this->hasMany(Reviews::class);
+    }
 
 
     public function getFcmToken()

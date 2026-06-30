@@ -71,7 +71,7 @@ class UserManagementService extends Service
                     'success'        => true,
                     'otp_required'   => true,
                     'account_exists' => false,
-                    'message'        => 'تم إنشاء الحساب بنجاح. تم إرسال كود التحقق إلى واتساب',
+                    'message'        => 'تم إنشاء الحساب بنجاح. تم إرسال كود التحقق  ',
                 ];
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -222,7 +222,7 @@ class UserManagementService extends Service
                     'success' => true,
                     'otp_required' => true,
                     'phone_verified' => false,
-                    'message' => 'الحساب غير مفعل. تم إرسال كود التحقق إلى واتساب'
+                    'message' => 'الحساب غير مفعل. تم إرسال كود التحقق  '
                 ];
             } catch (\Exception $e) {
                 return [
@@ -441,7 +441,7 @@ class UserManagementService extends Service
             $this->otpService->generateOTP($data['phone'], 'reset_password');
             return [
                 'success' => true,
-                'message' => 'تم إرسال كود التحقق إلى واتساب'
+                'message' => 'تم إرسال كود التحقق  '
             ];
         } catch (\Exception $e) {
             return [

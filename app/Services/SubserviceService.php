@@ -77,7 +77,7 @@ class SubserviceService extends Service
         }
     }
 
-          public function deleteMultipleSubservices($data): void
+    public function deleteMultipleSubservices($data): void
     {
         try {
             $subservices = Subservice::whereIn('id', $data['ids'])->get();
@@ -100,13 +100,28 @@ class SubserviceService extends Service
 
     public function getSubservicesByIdForUser(ManageSubservice $manageSubservice)
     {
-        $manageSubservice->load(['subservice:id,name,image', 'images']);
+        $manageSubservice->load(['subservice:id,name,image', 'images', 'offers' => function ($query) {
+            $query->with('manageSubservices')->where('from', '<=', now())
+                ->where('to', '>=', now());
+        }]);
+        $offer = $manageSubservice->offers->map(function ($offer) use ($manageSubservice) {
+            $count = $offer->manageSubservices->count();
+            if ($count == 1) {
+                return $offer;
+            }
+        })->filter()->first();
+        $has_offer = false;
+        if ($offer) {
+            $has_offer = true;
+        }
 
+        $has_points = $manageSubservice->activating_points && $manageSubservice->points > 0 && $manageSubservice->from <= now() && $manageSubservice->to >= now();
         return [
             'id' => $manageSubservice->id,
             'name' => $manageSubservice->subservice->name,
             'price' => $manageSubservice->price,
             'is_active' => $manageSubservice->is_active,
+            'has_points' => $has_points,
             'activating_points' => $manageSubservice->activating_points,
             'points' => $manageSubservice->points,
             'from' => $manageSubservice->from,
@@ -115,6 +130,15 @@ class SubserviceService extends Service
             'description' => $manageSubservice->description,
             'completion_time' => $manageSubservice->completion_time,
             'equipment' => $manageSubservice->equipment,
+            'has_offer' => $has_offer,
+            'offer' => $has_offer ? [
+                'id' => $offer->id,
+                'discount_value' => $offer->discount_value,
+                'from' => $offer->from,
+                'to' => $offer->to,
+                'image' => $offer->image,
+                'description' => $offer->description,
+            ] : null,
             'images' => $manageSubservice->images->map(function ($image) {
                 return [
                     'id' => $image->id,

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Center\Center;
 use App\Models\Center\Work;
+use App\Models\ManageSubservice;
 use App\Models\Subservice;
 use App\Traits\DistanceTrait;
 use Illuminate\Support\Facades\Auth;
@@ -63,20 +64,39 @@ class UserService extends Service
 
         $service_ids = $center->services->pluck('id')->toArray();
 
-         $basic['subservices'] = Subservice::withWhereHas('manageSubservices', function ($q) use ($center) {
-                    $q->where('center_id', $center->id)
-                        ->where('is_active', true);
+        $basic['subservices'] = ManageSubservice::with(['offers' => function ($query) {
+                $query->where('from', '<=', now())
+                    ->where('to', '>=', now())->with('manageSubservices');
+            }, 'subservice'])->where('center_id', $center->id)->where('is_active', true)
+                ->whereHas('subservice', function ($q) use ($service_ids) {
+                    $q->whereIn('service_id', $service_ids);
                 })
-                ->whereIn('service_id', $service_ids)
                 ->get()
-                ->map(function ($sub) {
-                    $manage = $sub->manageSubservices->first(); // خذ أول عنصر فقط
+                ->map(function ($manage) {
+                    $sub = $manage->subservice;
+                    $offer = $manage->offers->map(function ($offer) use ($manage) {
+                        $count = $offer->manageSubservices->count();
+                        if ($count == 1) {
+                            return $offer;
+                        }
+                    })->filter()->first();
+                    $has_offer = false;
+                    if ($offer) {
+                        $has_offer = true;
+                    }
+                    $new_price = $has_offer ? $manage->price - $offer->discount_value : null;
+                    $has_points = $manage->activating_points && $manage->points > 0 && $manage->from <= now() && $manage->to >= now();
+
+
                     return [
                         'id' => $manage ? $manage->id : null,
-                        'service_id' => $sub->service_id,
                         'name' => $sub->name,
-                        'image' => $manage->image ? $manage->image : $sub->image,
-                        'price' => $manage->price
+                        'image' => $manage->image ?? $sub->image,
+                        'price' =>  $manage->price,
+                        'has_active_offers' => $has_offer,
+                        'new_price' => $has_offer ? $new_price : null,
+                        'has_points' => $has_points,
+                        'points' => $manage->points ?? null,
                     ];
                 });
 
@@ -99,22 +119,43 @@ class UserService extends Service
     public function getSubservices($centerId, $serviceId)
     {
         try {
-            $subservices = Subservice::where('service_id', $serviceId)
-                ->withWhereHas('manageSubservices', function ($q) use ($centerId) {
-                    $q->where('center_id', $centerId)
-                        ->where('is_active', true);
+            $manage = ManageSubservice::with(['offers' => function ($query) {
+                $query->where('from', '<=', now())
+                    ->where('to', '>=', now())->with('manageSubservices');
+            }, 'subservice'])->where('center_id', $centerId)->where('is_active', true)
+                ->whereHas('subservice', function ($q) use ($serviceId) {
+                    $q->where('service_id', $serviceId);
                 })
                 ->get()
-                ->map(function ($sub) {
-                    $manage = $sub->manageSubservices->first(); // خذ أول عنصر فقط
+                ->map(function ($manage) {
+                    $sub = $manage->subservice;
+                    $offer = $manage->offers->map(function ($offer) use ($manage) {
+                        $count = $offer->manageSubservices->count();
+                        if ($count == 1) {
+                            return $offer;
+                        }
+                    })->filter()->first();
+                    $has_offer = false;
+                    if ($offer) {
+                        $has_offer = true;
+                    }
+                    $new_price = $has_offer ? $manage->price - $offer->discount_value : null;
+                    $has_points = $manage->activating_points && $manage->points > 0 && $manage->from <= now() && $manage->to >= now();
+
+
                     return [
                         'id' => $manage ? $manage->id : null,
                         'name' => $sub->name,
-                        'image' => $sub->image,
+                        'image' => $manage->image ?? $sub->image,
+                        'price' =>  $manage->price,
+                        'has_active_offers' => $has_offer,
+                        'new_price' => $has_offer ? $new_price : null,
+                        'has_points' => $has_points,
+                        'points' => $manage->points ?? null,
                     ];
                 });
 
-            return $subservices;
+            return $manage;
         } catch (\Exception $e) {
             Log::error('Error fetching subservices for arbitrary center', ['center_id' => $centerId, 'service_id' => $serviceId, 'error' => $e->getMessage()]);
             $this->throwExceptionJson('حدث خطأ ما أثناء جلب الخدمات الفرعية للمركز');

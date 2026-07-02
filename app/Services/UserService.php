@@ -25,6 +25,11 @@ class UserService extends Service
             'workingHours',
             'services:id,name,image',
             'works.service:id,name,image',
+            'offers' => function ($query) {
+                $query->where('from', '<=', now())
+                    ->where('to', '>=', now())
+                    ->with('manageSubservices');
+            },
         ]);
 
         $is_verified = $center->verification_status == 'accepted';
@@ -62,43 +67,69 @@ class UserService extends Service
             ];
         });
 
+        $basic['offers'] = $center->offers->map(function ($offer) {
+            $subservices = $offer->manageSubservices->map(function ($manageSubservice) {
+                return [
+                    'id' => $manageSubservice->id,
+                    'name' => $manageSubservice->subservice->name,
+                    'image' => $manageSubservice->image ?? $manageSubservice->subservice->image,
+                    'price' => $manageSubservice->price,
+                    'description' => $manageSubservice->description,
+                    'equipment' => $manageSubservice->equipment,
+                    'completion_time' => $manageSubservice->completion_time,
+                    
+
+                ];
+            });
+
+            return [
+                'id' => $offer->id,
+                'discount_value' => $offer->discount_value,
+                'discount_percentage' => $offer->discount_percentage,
+                'from' => $offer->from,
+                'to' => $offer->to,
+                'description' => $offer->description,
+                'subservices' => $subservices,
+            ];
+        });
+
         $service_ids = $center->services->pluck('id')->toArray();
 
         $basic['subservices'] = ManageSubservice::with(['offers' => function ($query) {
-                $query->where('from', '<=', now())
-                    ->where('to', '>=', now())->with('manageSubservices');
-            }, 'subservice'])->where('center_id', $center->id)->where('is_active', true)
-                ->whereHas('subservice', function ($q) use ($service_ids) {
-                    $q->whereIn('service_id', $service_ids);
-                })
-                ->get()
-                ->map(function ($manage) {
-                    $sub = $manage->subservice;
-                    $offer = $manage->offers->map(function ($offer) use ($manage) {
-                        $count = $offer->manageSubservices->count();
-                        if ($count == 1) {
-                            return $offer;
-                        }
-                    })->filter()->first();
-                    $has_offer = false;
-                    if ($offer) {
-                        $has_offer = true;
+            $query->where('from', '<=', now())
+                ->where('to', '>=', now())->with('manageSubservices');
+        }, 'subservice'])->where('center_id', $center->id)->where('is_active', true)
+            ->whereHas('subservice', function ($q) use ($service_ids) {
+                $q->whereIn('service_id', $service_ids);
+            })
+            ->get()
+            ->map(function ($manage) {
+                $sub = $manage->subservice;
+                $offer = $manage->offers->map(function ($offer) use ($manage) {
+                    $count = $offer->manageSubservices->count();
+                    if ($count == 1) {
+                        return $offer;
                     }
-                    $new_price = $has_offer ? $manage->price - $offer->discount_value : null;
-                    $has_points = $manage->activating_points && $manage->points > 0 && $manage->from <= now() && $manage->to >= now();
+                })->filter()->first();
+                $has_offer = false;
+                if ($offer) {
+                    $has_offer = true;
+                }
+                $new_price = $has_offer ? $manage->price - $offer->discount_value : null;
+                $has_points = $manage->activating_points && $manage->points > 0 && $manage->from <= now() && $manage->to >= now();
 
 
-                    return [
-                        'id' => $manage ? $manage->id : null,
-                        'name' => $sub->name,
-                        'image' => $manage->image ?? $sub->image,
-                        'price' =>  $manage->price,
-                        'has_active_offers' => $has_offer,
-                        'new_price' => $has_offer ? $new_price : null,
-                        'has_points' => $has_points,
-                        'points' => $manage->points ?? null,
-                    ];
-                });
+                return [
+                    'id' => $manage ? $manage->id : null,
+                    'name' => $sub->name,
+                    'image' => $manage->image ?? $sub->image,
+                    'price' =>  $manage->price,
+                    'has_active_offers' => $has_offer,
+                    'new_price' => $has_offer ? $new_price : null,
+                    'has_points' => $has_points,
+                    'points' => $manage->points ?? null,
+                ];
+            });
 
 
         return $basic;

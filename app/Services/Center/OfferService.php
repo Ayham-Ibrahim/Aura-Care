@@ -25,15 +25,20 @@ class OfferService extends Service
             ->select('id', 'discount_value', 'discount_percentage', 'from', 'to')
             ->with(['manageSubservices' => function ($query) {
                 $query
-                    ->select('manage_subservices.id', 'subservice_id', 'price') // جلب الحقول المطلوبة فقط
+                    ->select('manage_subservices.id', 'subservice_id', 'price','image') // جلب الحقول المطلوبة فقط
                     ->with('subservice:id,name,image');
             }])
             ->get()
             ->map(function ($offer) {
                 $offer->subservices = $offer->manageSubservices
-                    ->pluck('subservice')
-                    ->filter()
-                    ->values();
+                    ->map(function ($manageSubservice) {
+                        return [
+                            'id' => $manageSubservice->subservice->id,
+                            'name' => $manageSubservice->subservice->name,
+                            'image' => $manageSubservice->image ?? $manageSubservice->subservice->image,
+                        ];
+                    });
+                
 
                 unset($offer->manageSubservices);
 
@@ -56,7 +61,7 @@ class OfferService extends Service
         return ManageSubservice::where('center_id', $centerId)
             ->where('is_active', 1)
             ->with('subservice:id,name,image')
-            ->select('id', 'subservice_id', 'price')
+            ->select('id', 'subservice_id', 'price','image')
             ->get()
             ->map(function ($manageSubservice) {
                 $subservice = $manageSubservice->subservice;
@@ -64,7 +69,7 @@ class OfferService extends Service
                 return [
                     'id' => $subservice->id,
                     'name' => $subservice->name,
-                    'image' => $subservice->image,
+                    'image' => $manageSubservice->image ?? $subservice->image,
                     'price' => $manageSubservice->price,
                 ];
             })
